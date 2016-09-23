@@ -33,7 +33,8 @@ def before_request():
 def show_semesters():
 	cur = g.db.execute('SELECT * FROM semesters')
 	semesters = [dict(year=row[0], season=row[1]) for row in cur.fetchall()]
-	return render_template('show_semesters.html', semesters=semesters)
+	return render_template('overview.html', semesters=semesters)
+
 
 @app.route('/add_semester', methods=['POST'])
 def add_semester():
@@ -47,6 +48,29 @@ def add_semester():
 		g.db.commit()
 		flash('Semester has been added!')
 	return redirect(url_for('show_semesters'))
+
+@app.route('/semester/<season>/<int:year>')
+def semester(season,year):
+    cur = g.db.execute('SELECT schedule FROM semesters WHERE year = ? AND season = ?',(season,year))
+    courses = [dict(name=row[0], instructor=row[1]) for row in cur.fetchall()]
+    return render_template('semester.html', courses=courses,season=season,year=year)
+
+
+# @app.route('/<semester>/<season>/<int:year>/add_course', methods=['POST'])
+def add_course(season,year):
+    if not session.get('logged_in'):
+        abort(401)
+    try:
+        g.db.execute('INSERT INTO courses (name,instructor) VALUES (?,?)', [request.form['name'],request.form['instructor']])
+    except:
+        flash('that course has already been added')
+    else:
+        g.db.commit()
+        flash('Course added!')
+    return redirect(url_for('semester', season=season, year=year))
+# /<semester>/<course>/add_grade
+def add_grade():
+    pass
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -67,7 +91,6 @@ def logout():
 	session.pop('logged_in',None)
 	flash('You logged out')
 	return redirect(url_for('show_semesters'))
-
 
 # running the app by itself from command line
 if __name__ == "__main__":

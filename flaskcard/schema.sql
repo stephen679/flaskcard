@@ -30,5 +30,3 @@ CREATE TABLE assignment (
 	FOREIGN KEY(course) REFERENCES courses(name),
 	FOREIGN KEY(category) REFERENCES categories(name)
 );
-
-
