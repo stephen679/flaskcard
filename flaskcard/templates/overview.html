@@ -15,7 +15,7 @@
 	{% for semester in semesters %}
 		<li>
 			<a href="{{ url_for('semester',season=semester.season,year=semester.year) }}">
-				{{ semester.season }}{{ semester.year }}
+				{{ semester.season }} {{ semester.year }}
 			</a>
 	{% else %}
 		<li><em>No semesters created so far :(</em>

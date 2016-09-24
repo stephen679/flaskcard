@@ -1,0 +1,23 @@
+{% extends 'layout.html' %}
+{% block body %}
+<div class=courses>
+  <h1>{{ course }}</h1>
+  <form action="#" method=post class=add-assignment>
+    <h2>New Assignment</h2>
+    <dl>
+      <dt>Title:
+      <dd><input type=text size=30 name=title>
+      <dt>Unweighted grade:
+      <dd><input type=text size=30 name=unweighted_grade>
+      <dt>Category:
+      <dd><input type=text size=10 name=category>
+      <dd><input type=hidden name=year value="{{ year }}">
+      <dd><input type=hidden name=season value="{{ season }}">
+    </dl>
+  {% for a in assignments %}
+    <div class=assignment>
+      <span class=assignment-name> {{ a.title }}</span>
+      {{ a.unweighted_grade }}
+      {{ a.category }}
+    </div>
+</div>

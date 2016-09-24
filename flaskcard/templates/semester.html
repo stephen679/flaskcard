@@ -3,19 +3,19 @@
   <div class=semester>
     <h1>{{ season }}{{ year }}</h1>
   </div>
-  <form action="#" method=POST class=add_course>
+  <form action="{{ url_for('add_course',season=season, year=year) }}" method=post class=add_course>
     <dl>
-      <dt>Name:
+      <dt>Course Name:
       <dd><input type=text size=30 name=course_name>
       <dt>Instructor:
         <input type=text size=30 name=instructor>
       <dd><input type=submit value=Add>
+      <dd><input type=hidden name=year value="{{ year }}">
+      <dd><input type=hidden name=season value="{{ season }}">
     </dl>
   </form>
   <div class=courses>
   {% for course in courses %}
-    <li><h2>{{ course.name }},{{ course.instructor }}</h2></li>
+    <li><h2>{{ course.name }}, {{ course.instructor }}</h2></li>
   {% endfor %}
-  <a href="#">Add another course</a>
-  </div>
 {% endblock %}
