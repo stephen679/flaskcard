@@ -29,7 +29,7 @@ DROP TABLE IF EXISTS courses;
 CREATE TABLE courses (
 	name TEXT NOT NULL,
 	instructor TEXT,
-	report assignments,
+	report assignments
 );
 
 DROP TABLE IF EXISTS assignment;
