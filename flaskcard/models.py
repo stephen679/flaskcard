@@ -3,21 +3,19 @@ from sqlalchemy.orm import relationship
 from database import Base
 
 from flask_sqlalchemy import SQLAlchemy
-from flaskcard import db
+
+db = SQLAlchemy()
 
 class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True)
     password = db.Column(db.String(120))
     first_name = db.Column(db.String(80))
     last_name = db.Column(db.String(80))
     semesters = db.relationship('Semester', backref='person',lazy='dynamic')
 
-    def __init__(self, username, password, first_name,last_name):
+    def __init__(self, username, password):
         self.username = username
         self.password = password
-        self.first_name = first_name
-        self.last_name = last_name
 
     def __repr__(self):
         return '<User: %r (%r %r)>' % (self.username,self.first_name, self.last_name)
@@ -37,34 +35,39 @@ class Semester(db.Model):
     def __repr__(self):
         return '<Semester: %r %r>' % (self.season,self.year)
 
-class Assignment(db.Model):
-    pass
-
 class Course(db.Model):
-    pass
-"""
+    id = db.Column(db.Integer, primary_key=True)
+    semester_id = db.Column(db.Integer,db.ForeignKey('semester.id'))
+    name = db.Column(db.String(128))
+    instructor = db.Column(db.String(128))
+    assignments = db.relationship('Assignment', backref='course',lazy='dynamic')
 
-class Semester(Base):
-    __tablename__ = 'semesters'
-    season = Column(String(10))
-    year = Column(Integer)
-    courses = relationship('Course')
-    username = Column(String(80),ForeignKey('User.username'))
+    def __init__(self, name, instructor,semester_id,assignments=None):
+        self.semester_id = semester_id
+        self.name = name
+        self.instructor = instructor
+        if assignments is not None:
+            self.assignments = None
 
-    def __init__(self, season, year, username):
-        self.season = season
-        self.year = year
-        self.user = username
+    def __repr__(self):
+        return '<Course: %r, taught by %r>' % (self.name, self.instructor)
 
-class Assignment(Base):
-    __tablename__ = 'assignments'
-    name = Column(String(128),primary_key=True)
-    grade = Column(Float)
-    category = Column(String(80))
-    course = Column(String(80),ForeignKey('Course.coursename'))
+class Assignment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(128))
+    earned_points = db.Column(db.Integer)
+    total_points = db.Column(db.Integer)
+    description = (db.Column(db.String(128)))
+    course_id = db.Column(db.Integer,db.ForeignKey('course.id'))
 
+    def __init__(self,name,earned_points,total_points,course_id,description=None):
+        self.name = name
+        self.earned_points = earned_points
+        self.total_points = total_points
+        self.course_id = course_id
+        if description is not None:
+            self.description = description
 
-class Course(Base):
-    __tablename__ = 'courses'
-    name = Column(String(80),primary_key=True)
-    assignments = relationship('Assignment')"""
+    def __repr__(self):
+        return '<Assignment: %r, %r points earned out of %r total points>' % \
+                                    (self.name, self.earned_points,self.total_points)

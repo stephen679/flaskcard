@@ -3,54 +3,66 @@ import sqlite3
 from flask import Flask, request, session, g, redirect, url_for, \
      abort, render_template, flash
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager
 from contextlib import closing # helps initialize a database so we don't have to hardcode
 from models import *
 
 app = Flask(__name__)
 
-# configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/flaskcard.db'
-app.config['DATABASE'] = '/tmp/flaskcard.db' # eventually change this to get these items from environment
 app.config['DEBUG'] = True
 app.config['SECRET_KEY'] = 'development key'
 app.config['USERNAME'] = 'admin'
 app.config['PASSWORD'] = 'default'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/flaskcard.db'
 
-db = SQLAlchemy(app)
+db.init_app(app)
+lm = LoginManager()
+lm.init_app(app)
 
-# user can set environment variable FLASKCARD_SETTINGS to a path for a config file
-# app.config.from_envvar("FLASKCARD_SETTINGS", silent=True)
+@lm.user_loader
+def load_user(user_id):
+    return User.get(user_id)
 
-def connect_db():
-	return sqlite3.connect(app.config['DATABASE'])
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+	err = None
+	if request.method == "POST":
+		if request.form['username'] != app.config['USERNAME']:
+			err = 'Invalid username'
+		elif request.form['password'] != app.config['PASSWORD']:
+			err = 'Invalid password'
+		else:
+			session['logged_in'] = True
+			flash('You\'re logged in')
+			return redirect(url_for('show_semesters'))
+	return render_template('login.html', error=err)
 
-def init_db():
-	with closing(connect_db()) as db:
-		with app.open_resource('schema.sql', mode='r') as f:
-			db.cursor().executescript(f.read())
-		db.commit()
+@app.route('/logout')
+@login_required
+def logout():
+	session.pop('logged_in',None)
+	flash('You logged out')
+	return redirect(url_for('show_semesters'))
 
-@app.before_request
-def before_request():
-	g.db = connect_db()
+@app.before_first_request
+def initialize_database():
+    db.create_all()
 
 @app.route('/')
 def show_semesters():
-	cur = g.db.execute('SELECT * FROM semesters')
-	semesters = [dict(year=row[0], season=row[1]) for row in cur.fetchall()]
-	return render_template('overview.html', semesters=semesters)
+	semesters = [semester for semester in Semester.query.all()]
+	return render_template('overview.html', semesters=semesters, user=)
 
 @app.route('/add_semester', methods=['POST'])
 def add_semester():
-	if not session.get('logged_in'):
-		abort(401) # only a logged-in user can create a semester
-	try:
-        # TODO: add semester
-		g.db.execute('INSERT INTO semesters (year,season) VALUES (?,?)', [request.form['year'],request.form['season']])
-	except:
+    try:
+        semester = Semester(request.form['season',request.form['year'],request.form['user_id'])
+        db.add(semester)
+    except:
 		flash('that semester has been created already >:(')
 	else:
-		g.db.commit()
+		db.session.commit()
 		flash('Semester has been added!')
 	return redirect(url_for('show_semesters'))
 
@@ -112,26 +124,6 @@ def add_grade():
         g.db.commit()
         flash('Assignment added ~~')
     return redirect(url_for('course',name=f['course]']))
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-	err = None
-	if request.method == "POST":
-		if request.form['username'] != app.config['USERNAME']:
-			err = 'Invalid username'
-		elif request.form['password'] != app.config['PASSWORD']:
-			err = 'Invalid password'
-		else:
-			session['logged_in'] = True
-			flash('You\'re logged in')
-			return redirect(url_for('show_semesters'))
-	return render_template('login.html', error=err)
-
-@app.route('/logout')
-def logout():
-	session.pop('logged_in',None)
-	flash('You logged out')
-	return redirect(url_for('show_semesters'))
 
 # running the app by itself from command line
 if __name__ == "__main__":

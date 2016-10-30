@@ -1,6 +1,6 @@
 {% extends 'layout.html' %}
 {% block body %}
-	{% if session.logged_in %}
+	<!-- {% if session.logged_in %} -->
 		<form action="{{ url_for('add_semester') }}" method=post class=add-semseter>
 			<dl>
 				<dt>Season:
@@ -8,9 +8,10 @@
 				<dt>Year:
 					<input type=text size=4 name=year>
 				<dd><input type=submit value=Share>
+				<input type=hidden name=user_id value="{{ user.id }}"
 			</dl>
 		</form>
-	{% endif %}
+	<!-- {% endif %} -->
 	<ul class=semesters>
 	{% for semester in semesters %}
 		<li>
