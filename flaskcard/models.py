@@ -17,6 +17,21 @@ class User(db.Model):
         self.username = username
         self.password = password
 
+    def is_authenticated(self):
+        return True
+
+    def is_active(self):
+        return True
+
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        """
+        Flask-Login id's require unicode strings!
+        """
+        return unicode(self.id)
+
     def __repr__(self):
         return '<User: %r (%r %r)>' % (self.username,self.first_name, self.last_name)
 
