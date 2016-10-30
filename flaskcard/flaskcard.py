@@ -29,11 +29,12 @@ def load_user(user_id):
 def register():
     if request.method == 'GET':
         return render_template('register.html')
-    username = request.form['username']
-    print User.query.filter_by(username=username).first()
-    if User.query.filter_by(username=username).first() is not None:
+
+    # Ensure unique usernames!
+    if User.query.filter_by(username=request.form['username']).first() is not None:
         flash('That username is already taken')
         return redirect(url_for('login'))
+
     new_user = User(username,request.form['password'])
     db.session.add(new_user)
     db.session.commit()
@@ -73,12 +74,14 @@ def initialize_database():
 @app.route('/')
 def show_semesters():
     user = User.query.filter_by(id=current_user.get_id()).first()
-    print user.username
     semesters = [semester for semester in user.semesters]
     return render_template('overview.html', semesters=semesters)
 
 @app.route('/add_semester', methods=['POST'])
 def add_semester():
+    # TODO: separate form validation and object creation
+
+
     semester = Semester(request.form['season'],request.form['year'],current_user.get_id())
     db.session.add(semester)
     db.session.commit()
