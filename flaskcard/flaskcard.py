@@ -55,7 +55,7 @@ def login():
 def logout():
     logout_user()
     flash('You logged out')
-    return redirect(url_for('show_semesters'))
+    return redirect(url_for('login'))
 
 @app.before_request
 def before_request():
@@ -72,14 +72,10 @@ def show_semesters():
 
 @app.route('/add_semester', methods=['POST'])
 def add_semester():
-    try:
-        semester = Semester(request.form['season'],request.form['year'],request.form['user_id'])
-        db.add(semester)
-    except:
-        flash('that semester has been created already >:(')
-    else:
-        db.session.commit()
-        flash('Semester has been added!')
+    semester = Semester(request.form['season'],request.form['year'],current_user.get_id())
+    db.session.add(semester)
+    db.session.commit()
+    flash('Semester has been added!')
     return redirect(url_for('show_semesters'))
 
 
