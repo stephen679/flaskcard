@@ -8,3 +8,6 @@ class SemesterForm(FlaskForm):
 
 class AssignmentForm(FlaskForm):
     pass
+
+class CourseForm(FlaskForm):
+    pass

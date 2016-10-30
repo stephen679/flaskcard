@@ -20,7 +20,6 @@ db.init_app(app)
 lm = LoginManager()
 lm.init_app(app)
 
-
 @lm.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -73,15 +72,18 @@ def initialize_database():
 
 @app.route('/')
 def show_semesters():
+    """
+    Show semesters for the logged-in user
+    """
     user = User.query.filter_by(id=current_user.get_id()).first()
+    if user is None:
+        return redirect(url_for('login'))
     semesters = [semester for semester in user.semesters]
     return render_template('overview.html', semesters=semesters)
 
 @app.route('/add_semester', methods=['POST'])
 def add_semester():
     # TODO: separate form validation and object creation
-
-
     semester = Semester(request.form['season'],request.form['year'],current_user.get_id())
     db.session.add(semester)
     db.session.commit()
@@ -97,9 +99,7 @@ def semester():
     except:
         return redirect(url_for('show_semesters'))
     # TODO: show courses that exist for that semester
-    cur = g.db.execute('SELECT * FROM courses')
-    courses = [dict(name=row[0], instructor=row[1]) for row in cur.fetchall()]
-    print courses
+    courses = [course for course in Semester.query.filter_by(season=season,year=year)]
     return render_template('semester.html', courses=courses,season=season,year=year)
 
 

@@ -75,10 +75,6 @@ class Assignment(db.Model):
     total_points = db.Column(db.Integer)
     description = (db.Column(db.String(128)))
     course_id = db.Column(db.Integer,db.ForeignKey('course.id'))
-    category_id = db.Column(db.Integer,db.ForeignKey('category.id'))
-
-    # define the relationship as one-to-one
-    category = relationship('Category', backref='assignment',lazy='dynamic')
 
     def __init__(self,name,earned_points,total_points,course_id,category=None, description=None):
         self.name = name
