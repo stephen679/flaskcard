@@ -3,7 +3,7 @@ import sqlite3
 from flask import Flask, request, session, g, redirect, url_for, \
      abort, render_template, flash
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
+from flask_login import LoginManager, login_user , logout_user , current_user , login_required
 from contextlib import closing # helps initialize a database so we don't have to hardcode
 from models import *
 
@@ -20,30 +20,46 @@ db.init_app(app)
 lm = LoginManager()
 lm.init_app(app)
 
+
 @lm.user_loader
 def load_user(user_id):
-    return User.get(user_id)
+    return User.query.get(int(user_id))
+
+@app.route('/register',methods=['GET','POST'])
+def register():
+    if request.method == 'GET':
+        return render_template('register.html')
+    new_user = User(request.form['username'],request.form['password'])
+    db.session.add(new_user)
+    db.session.commit()
+    flash('User registered!')
+    return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-	err = None
-	if request.method == "POST":
-		if request.form['username'] != app.config['USERNAME']:
-			err = 'Invalid username'
-		elif request.form['password'] != app.config['PASSWORD']:
-			err = 'Invalid password'
-		else:
-			session['logged_in'] = True
-			flash('You\'re logged in')
-			return redirect(url_for('show_semesters'))
-	return render_template('login.html', error=err)
+    err = None
+    if request.method == "POST":
+        username = request.form['username']
+        password = request.form['password']
+        registered_user = User.query.filter_by(username=username,password=password).first()
+        if registered_user is None:
+            flash('Username or Password is invalid' , 'error')
+            return redirect(url_for('login'))
+        login_user(registered_user)
+        flash('You\'re logged in')
+        return redirect(request.args.get('next') or url_for('show_semesters'))
+    return render_template('login.html', error=err)
 
 @app.route('/logout')
 @login_required
 def logout():
-	session.pop('logged_in',None)
-	flash('You logged out')
-	return redirect(url_for('show_semesters'))
+    logout_user()
+    flash('You logged out')
+    return redirect(url_for('show_semesters'))
+
+@app.before_request
+def before_request():
+    g.user = current_user
 
 @app.before_first_request
 def initialize_database():
@@ -51,20 +67,20 @@ def initialize_database():
 
 @app.route('/')
 def show_semesters():
-	semesters = [semester for semester in Semester.query.all()]
-	return render_template('overview.html', semesters=semesters, user=)
+    semesters = [semester for semester in Semester.query.all()]
+    return render_template('overview.html', semesters=semesters)
 
 @app.route('/add_semester', methods=['POST'])
 def add_semester():
     try:
-        semester = Semester(request.form['season',request.form['year'],request.form['user_id'])
+        semester = Semester(request.form['season'],request.form['year'],request.form['user_id'])
         db.add(semester)
     except:
-		flash('that semester has been created already >:(')
-	else:
-		db.session.commit()
-		flash('Semester has been added!')
-	return redirect(url_for('show_semesters'))
+        flash('that semester has been created already >:(')
+    else:
+        db.session.commit()
+        flash('Semester has been added!')
+    return redirect(url_for('show_semesters'))
 
 
 @app.route('/semester')
@@ -127,4 +143,4 @@ def add_grade():
 
 # running the app by itself from command line
 if __name__ == "__main__":
-	app.run()
+    app.run()
