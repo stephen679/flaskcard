@@ -2,22 +2,28 @@
 {% block body %}
 <div class=courses>
   <h1>{{ course }}</h1>
-  <form action="#" method=post class=add-assignment>
-    <h2>New Assignment</h2>
+  <form action="{{ url_for('add_grade',course_id=" method=post class=add-assignment>
+    <h3>New Assignment</h3>
     <dl>
       <dt>Title:
       <dd><input type=text size=30 name=title>
-      <dt>Unweighted grade:
-      <dd><input type=text size=30 name=unweighted_grade>
+      <dt>Points Earned:
+      <dd><input type=text size=30 name=points_earned>
+      <dt>Total Points:
+      <dd><input type=text size=30 name=total_points>
       <dt>Category:
       <dd><input type=text size=10 name=category>
+      <dd><input type=submit value="Add assignment">
       <dd><input type=hidden name=year value="{{ year }}">
       <dd><input type=hidden name=season value="{{ season }}">
     </dl>
+  <h4>Assignments for this course</h4>
   {% for a in assignments %}
     <div class=assignment>
       <span class=assignment-name> {{ a.title }}</span>
       {{ a.unweighted_grade }}
       {{ a.category }}
     </div>
+  {% endfor %}
 </div>
+{% endblock %}

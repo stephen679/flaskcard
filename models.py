@@ -66,7 +66,7 @@ class Course(db.Model):
             self.assignments = None
 
     def __repr__(self):
-        return '<Course: %r, taught by %r>' % (self.name, self.instructor)
+        return '<Course: %r, Taught by: %r>' % (self.name, self.instructor)
 
 class Assignment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -87,7 +87,7 @@ class Assignment(db.Model):
         if category is not None:
             self.category = category
     def __repr__(self):
-        return '<Assignment: %r, %r points earned out of %r total points>' % \
+        return '<Assignment: %r, %r/%r point>' % \
                                     (self.name, self.earned_points,self.total_points)
 
 class Category(db.Model):

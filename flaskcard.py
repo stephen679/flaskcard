@@ -20,6 +20,19 @@ db.init_app(app)
 lm = LoginManager()
 lm.init_app(app)
 
+
+def get_current_user():
+    if g.user is None:
+        return None
+    return User.query.filter_by(id=current_user.get_id()).first()
+
+@app.before_request
+def before_request():
+    """
+    Ensure that the requests you make are associated with a user (for the most part)
+    """
+    g.user = current_user
+
 @lm.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -34,7 +47,7 @@ def register():
         flash('That username is already taken')
         return redirect(url_for('login'))
 
-    new_user = User(username,request.form['password'])
+    new_user = User(request.form['username'],request.form['password'])
     db.session.add(new_user)
     db.session.commit()
     flash('User registered!')
@@ -62,10 +75,6 @@ def logout():
     flash('You logged out')
     return redirect(url_for('login'))
 
-@app.before_request
-def before_request():
-    g.user = current_user
-
 @app.before_first_request
 def initialize_database():
     db.create_all()
@@ -82,6 +91,7 @@ def show_semesters():
     return render_template('overview.html', semesters=semesters)
 
 @app.route('/add_semester', methods=['POST'])
+@login_required
 def add_semester():
     # TODO: separate form validation and object creation
     semester = Semester(request.form['season'],request.form['year'],current_user.get_id())
@@ -92,60 +102,56 @@ def add_semester():
 
 
 @app.route('/semester')
+@login_required
 def semester():
     try:
         season = request.args.get('season')
         year = request.args.get('year')
     except:
+        flash('Semester does not exist in the database')
         return redirect(url_for('show_semesters'))
     # TODO: show courses that exist for that semester
-    courses = [course for course in Semester.query.filter_by(season=season,year=year)]
-    return render_template('semester.html', courses=courses,season=season,year=year)
+    semester = Semester.query.filter_by(season=season,year=year,user_id=get_current_user().id).first()
+    if semester is None:
+        flash('Could not find a semester associated with %s %s for %s' % (season,year,get_current_user().id))
+        return redirect(url_for('show_semesters'))
+    courses = [course for course in semester.courses]
+    return render_template('semester.html', courses=courses,season=season,year=year,semester=semester)
 
 
 @app.route('/semester/add_course', methods=['POST'])
+@login_required
 def add_course():
-    if not session.get('logged_in'):
-        abort(401)
-    try:
-        g.db.execute('INSERT INTO courses (name,instructor) VALUES (?,?)', [request.form['course_name'],request.form['instructor']])
-    except:
-        flash('that course has already been added')
-    else:
-        g.db.commit()
-        flash('Course added!')
+    name = request.form['name']
+    instructor = request.form['instructor']
+    semester_id = request.form['semester_id']
+    new_course = Course(name,instructor,semester_id)
+
+    db.session.add(new_course)
+    db.session.commit()
+    flash('Course added!')
     year = request.form['year']
     season = request.form['season']
     return redirect(url_for('semester', season=season, year=year))
 
-@app.route('/course/<name>')
-def course(name):
-    cur = g.db.execute('SELECT * FROM assignment WHERE course = ' + str(name))
-    assignments = []
-    for row in cur.fetchall():
-        attributes = dict()
-        attributes['title'] = row[0]
-        attributes['unweighted_grade'] = row[1]
-        attributes['course'] = row[2]
-        attributes['category'] = row[3]
-        assignments.append(attributes)
-    return render_template('course.html', assignments=assignments)
+@app.route('/course/<course_id>-<semester_id>')
+@login_required
+def course(course_id,semester_id):
+    course = Course.query.filter_by(id=course_id).first()
+    semester = Semester.query.filter_by(id=semester_id).first()
+    if course is None:
+        return redirect(url_for('semester',year=semester.year,season=semester.season))
+    context = {
+        'course' : course,
+        'semester' : semester,
+        'assignments' : course.assignments
+    }
+    return render_template('course.html',**context)
 
-@app.route('/course/<name>/add_grade', methods=['POST'])
-def add_grade():
-    if not session.get('logged_in'):
-        abort(401)
-    try:
-        f = request.form
-        g.db.execute('INSERT INTO assignment (title,unweighted_grade,course,category) VALUES (?,?,?,?)',
-                        [f['title'], f['unweighted_grade'], f['course'], f['category']])
-    except:
-        # todo: assignments should be able to be updated
-        flash('assignment already added')
-    else:
-        g.db.commit()
-        flash('Assignment added ~~')
-    return redirect(url_for('course',name=f['course]']))
+@app.route('/course/<course_id>-<semester_id>/add_grade', methods=['POST'])
+@login_required
+def add_grade(course_id,semester_id):
+    return redirect(url_for('course', course_id=course_id, semester_id=semester_id))
 
 # running the app by itself from command line
 if __name__ == "__main__":
