@@ -1,6 +1,7 @@
 {% extends 'layout.html' %}
 {% block body %}
 <form action="{{ url_for('register') }}" method="POST">
+  <h2>Register your account</h2>
   <dl>
     <dt>username:
     <dd><input type=text name=username>

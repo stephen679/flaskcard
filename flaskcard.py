@@ -2,6 +2,7 @@
 import sqlite3
 from flask import Flask, request, session, g, redirect, url_for, \
      abort, render_template, flash
+from flaskext.mysql import MySQL
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user , logout_user , current_user , login_required
 from contextlib import closing # helps initialize a database so we don't have to hardcode
@@ -13,6 +14,10 @@ app.config['DEBUG'] = True
 app.config['SECRET_KEY'] = 'development key'
 app.config['USERNAME'] = 'admin'
 app.config['PASSWORD'] = 'default'
+# app.config['MYSQL_DATABASE_USER'] = 'root'
+# app.config['MYSQL_DATABASE_PASSWORD'] = 'root'
+# app.config['MYSQL_DATABASE_DB'] = 'EmpData'
+# app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/flaskcard.db'
 
@@ -45,7 +50,7 @@ def register():
     # Ensure unique usernames!
     if User.query.filter_by(username=request.form['username']).first() is not None:
         flash('That username is already taken')
-        return redirect(url_for('login'))
+        return redirect(url_for('register'))
 
     new_user = User(request.form['username'],request.form['password'])
     db.session.add(new_user)
@@ -80,6 +85,7 @@ def initialize_database():
     db.create_all()
 
 @app.route('/')
+@login_required
 def show_semesters():
     """
     Show semesters for the logged-in user
@@ -144,13 +150,22 @@ def course(course_id,semester_id):
     context = {
         'course' : course,
         'semester' : semester,
-        'assignments' : course.assignments
+        'assignments' : [assignment for assignment in course.assignments]
     }
     return render_template('course.html',**context)
 
 @app.route('/course/<course_id>-<semester_id>/add_grade', methods=['POST'])
 @login_required
 def add_grade(course_id,semester_id):
+    course = Course.query.filter_by(id=course_id).first()
+    semester = Semester.query.filter_by(id=semester_id).first()
+    assignment = Assignment(request.form['title'],
+                            request.form['points_earned'],
+                            request.form['total_points'],
+                            course_id,
+                            category=request.form['category'])
+    db.session.add(assignment)
+    db.session.commit()
     return redirect(url_for('course', course_id=course_id, semester_id=semester_id))
 
 # running the app by itself from command line

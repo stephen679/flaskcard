@@ -17,8 +17,9 @@
     </dl>
   </form>
   <div class=courses>
+    <h3>Courses:</h3>
   {% for course in courses %}
-    <li><h2>Course name: {{ course.name }}<br></li></h2>
+    <li><h2>{{ course.name }}<br></li></h2>
     <ol>Instructor: {{ course.instructor }}</ol>
     <ol><a href="{{ url_for('course', course_id=course.id, semester_id=semester.id) }}">see course grades</a></ol>
   {% endfor %}

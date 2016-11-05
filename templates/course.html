@@ -1,7 +1,7 @@
 {% extends 'layout.html' %}
 {% block body %}
 <div class=courses>
-  <h1>Course name: {{ course.name }}</h1>
+  <h1>{{ course.name }}</h1>
   <h2>Taught by: {{ course.instructor }}</h2>
   <form action="{{ url_for('add_grade',course_id=course.id, semester_id=semester.id) }}" method=post class=add-assignment>
     <h3>New Assignment</h3>
@@ -22,7 +22,9 @@
   {% for a in assignments %}
     <div class=assignment>
       <span class=assignment-name> {{ a.title }}</span>
-      {{ a.unweighted_grade }}
+      {{ a.name }}:
+      {{ a.earned_points }}
+      {{ a.total_points }}
       {{ a.category }}
     </div>
   {% endfor %}
