@@ -140,13 +140,13 @@ def add_course():
     season = request.form['season']
     return redirect(url_for('semester', season=season, year=year))
 
-@app.route('/course/<course_id>-<semester_id>')
+@app.route('/course/<course_id>')
 @login_required
-def course(course_id,semester_id):
+def course(course_id):
     course = Course.query.filter_by(id=course_id).first()
-    semester = Semester.query.filter_by(id=semester_id).first()
     if course is None:
-        return redirect(url_for('semester',year=semester.year,season=semester.season))
+        return redirect(url_for('semester',year=request.form['year'],season=request.form['season']))
+    semester = Semester.query.filter_by(id=course.semester_id).first()
     context = {
         'course' : course,
         'semester' : semester,
@@ -154,11 +154,11 @@ def course(course_id,semester_id):
     }
     return render_template('course.html',**context)
 
-@app.route('/course/<course_id>-<semester_id>/add_grade', methods=['POST'])
+@app.route('/course/<course_id>/add_grade', methods=['POST'])
 @login_required
-def add_grade(course_id,semester_id):
+def add_grade(course_id):
     course = Course.query.filter_by(id=course_id).first()
-    semester = Semester.query.filter_by(id=semester_id).first()
+    semester = Semester.query.filter_by(id=course.semester_id).first()
     assignment = Assignment(request.form['title'],
                             request.form['points_earned'],
                             request.form['total_points'],
@@ -166,8 +166,18 @@ def add_grade(course_id,semester_id):
                             category=request.form['category'])
     db.session.add(assignment)
     db.session.commit()
-    return redirect(url_for('course', course_id=course_id, semester_id=semester_id))
+    return redirect(url_for('course', course_id=course_id, semester_id=course.semester_id))
 
+@app.route('/course/assignments/<assignment_id>'), methods=['GET']
+def assignment(assignment_id):
+    assignment = Assignment.query.filter_by(id=assignment_id).first()
+    if assignment is None:
+
+        flash('Assignment does not exist in our database!')
+        return redirect(url_for('course',course_id=))
+    course = Course.query.filter_by(id=assignment.course_id).first()
+    return render_template('assignment.html',{assignment : assignment,
+                                                course : course})
 # running the app by itself from command line
 if __name__ == "__main__":
     app.run()
