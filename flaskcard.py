@@ -166,18 +166,21 @@ def add_grade(course_id):
                             category=request.form['category'])
     db.session.add(assignment)
     db.session.commit()
-    return redirect(url_for('course', course_id=course_id, semester_id=course.semester_id))
+    return redirect(url_for('course', course_id=course_id))
 
-@app.route('/course/assignments/<assignment_id>'), methods=['GET']
-def assignment(assignment_id):
+@app.route('/course/<course_id>/assignments/<assignment_id>', methods=['GET'])
+@login_required
+def assignment(course_id,assignment_id):
     assignment = Assignment.query.filter_by(id=assignment_id).first()
     if assignment is None:
-
         flash('Assignment does not exist in our database!')
-        return redirect(url_for('course',course_id=))
+        return redirect(url_for('course',course_id=course_id))
     course = Course.query.filter_by(id=assignment.course_id).first()
-    return render_template('assignment.html',{assignment : assignment,
-                                                course : course})
+    context = {
+        'assignment' : assignment,
+        'course' : course
+    }
+    return render_template('assignment.html', **context)
 # running the app by itself from command line
 if __name__ == "__main__":
     app.run()

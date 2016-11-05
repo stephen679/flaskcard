@@ -1,9 +1,6 @@
 {% extends 'layout.html' %}
 {% block body %}
-  <div class=semester>
-    <h1>{{ season }}{{ year }}</h1>
-  </div>
-  <h3>Add a course</h3>
+  <h2>your courses for {{ semester.season }} {{ semester.year }}.</h2>
   <form action="{{ url_for('add_course') }}" method=post class=add_course>
     <dl>
       <dt>Course Name:
