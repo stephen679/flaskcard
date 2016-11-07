@@ -1,5 +1,5 @@
 from wtforms import Form, BooleanField, StringField, PasswordField,IntegerField, FloatField, validators, ValidationError
-from flask_wtf import FlaskForm
+from flask_wtf import Form
 from models import *
 
 # def point_check(negative=False,):
@@ -9,20 +9,24 @@ from models import *
 #             raise ValidationError('Points must be a non-negative number')
 
 class IdExists(object):
-    def __init__(self,model,id):
+    def __init__(self,model):
         self.model = model
-        self.id = id
 
-    def exists(self):
-        return len(self.model.query.filter_by(id=self.id)) != 0
+    def __call__(self,form,field):
+        id = field.data
+        if id is None or id == "" or id < 0:
+            raise ValidationError('Input does not exist or is invalid')
 
-class SemesterForm(FlaskForm):
+        if len(self.model.query.filter_by(id=id).all()) == 0:
+            raise ValidationError('%s does not exist in the database' % id)
+
+class SemesterForm(Form):
     # possibly use InputRequired instead?
     season = StringField('season', [validators.Length(max=10),validators.DataRequired()])
     year = StringField('year', [validators.length(min=4,max=4),validators.DataRequired()])
     user_id = IntegerField('user_id', [validators.DataRequired(), IdExists(User)])
 
-class AssignmentForm(FlaskForm):
+class AssignmentForm(Form):
     name = StringField('name', [validators.Length(max=128),validators.DataRequired()])
     earned_points = FloatField('earned_points', [validators.Length(max=4),validators.DataRequired()])
     total_points = FloatField('total_points', [validators.Length(max=4),validators.DataRequired()])
@@ -30,12 +34,11 @@ class AssignmentForm(FlaskForm):
     course_id = IntegerField('course_id', [validators.DataRequired(),IdExists(Course)])
     category_id = IntegerField('category_id', [validators.DataRequired(), IdExists(Category)])
 
-
-class CourseForm(FlaskForm):
+class CourseForm(Form):
     name = StringField('name', [validators.Length(max=128),validators.DataRequired()])
     instructor = StringField('instructor', [validators.Length(max=128), validators.DataRequired()])
-    semester_id = IntegerField('semester_id',[validators.Length(max=4), validators.DataRequired()])
+    semester_id = IntegerField('semester_id',[validators.Length(max=4), validators.DataRequired(), IdExists(Semester)])
 
-class CategoryForm(FlaskForm):
+class CategoryForm(Form):
     name = StringField('name', [validators.Length(max=128),validators.DataRequired()])
-    weight = FloatField('weight', [validators.Length(max=4),validators.DataRequired(), Weight])
+    weight = FloatField('weight', [validators.Length(max=4),validators.DataRequired()])

@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user , logout_user , current_user , login_required
 from contextlib import closing # helps initialize a database so we don't have to hardcode
 from models import *
+from forms import *
 
 app = Flask(__name__)
 
@@ -96,16 +97,22 @@ def show_semesters():
     if user is None:
         return redirect(url_for('login'))
     semesters = [semester for semester in user.semesters]
-    return render_template('overview.html', semesters=semesters)
+    return render_template('overview.html', semesters=semesters,user=user,form=SemesterForm())
 
 @app.route('/add_semester', methods=['POST'])
 @login_required
 def add_semester():
     # TODO: separate form validation and object creation
-    semester = Semester(request.form['season'],request.form['year'],current_user.get_id())
-    db.session.add(semester)
-    db.session.commit()
-    flash('Semester has been added!')
+    # semester = SemesterForm(request.POST,None)
+    if request.form:
+        f = SemesterForm(request.form)
+        if f.validate():
+            db.session.add(Semester(f.data['season'],f.data['year'],f.data['user_id']))
+            db.session.commit()
+            flash('Semester has been added!')
+        else:
+            # TODO: flash errors with red background
+            flash(f.errors)
     return redirect(url_for('show_semesters'))
 
 
