@@ -1,6 +1,16 @@
 {% extends 'layout.html' %}
 {% block body %}
   <h2>your courses for {{ semester.season }} {{ semester.year }}.</h2>
+  <div class=courses>
+    <h3>Courses:</h3>
+    <ul>
+      {% for course in courses %}
+        <li><h2>{{ course.name }}<br></li></h2>
+        <ol>Instructor: {{ course.instructor }}</ol>
+        <ol><a href="{{ url_for('course', course_id=course.id) }}">see course grades</a></ol>
+      {% endfor %}
+    </ul>
+  </div>
   <form action="{{ url_for('add_course') }}" method=post class=add_course>
     <dl>
       <dt>Course Name:
@@ -13,11 +23,4 @@
       <dd><input type=hidden name=semester_id value="{{ semester.id }}">
     </dl>
   </form>
-  <div class=courses>
-    <h3>Courses:</h3>
-  {% for course in courses %}
-    <li><h2>{{ course.name }}<br></li></h2>
-    <ol>Instructor: {{ course.instructor }}</ol>
-    <ol><a href="{{ url_for('course', course_id=course.id) }}">see course grades</a></ol>
-  {% endfor %}
 {% endblock %}

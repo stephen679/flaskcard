@@ -75,8 +75,9 @@ class Assignment(db.Model):
     total_points = db.Column(db.Integer)
     description = (db.Column(db.String(128)))
     course_id = db.Column(db.Integer,db.ForeignKey('course.id'))
+    category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
 
-    def __init__(self,name,earned_points,total_points,course_id,category=None, description=None):
+    def __init__(self,name,earned_points,total_points,course_id,category_id=None, description=None):
         self.name = name
         self.earned_points = earned_points
         self.total_points = total_points
@@ -84,8 +85,6 @@ class Assignment(db.Model):
         if description is not None:
             self.description = description
 
-        if category is not None:
-            self.category = category
     def __repr__(self):
         return '<Assignment: %r, %r/%r point>' % \
                                     (self.name, self.earned_points,self.total_points)
@@ -93,6 +92,12 @@ class Assignment(db.Model):
 class Category(db.Model):
     id = db.Column(db.Integer,primary_key=True)
     name = db.Column(db.String(128))
-    description = db.Column(db.String(128))
-    weight = db.Column(db.Float) # should be a percentage
-    assignment_id = db.Column(db.Integer,db.ForeignKey('assignment.id'))
+    weight = db.Column(db.Float) # 0.0 < weight <= 1.0
+    assignments = db.relationship('Assignment', backref='person', lazy='dynamic')
+
+    def __init__(self, name, weight):
+        self.name = name
+        self.weight = weight
+        self.description = description
+        if assignments is not None:
+            self.assignments = assignments

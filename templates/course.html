@@ -2,6 +2,10 @@
 {% block body %}
 <div class=courses>
   <h2> your grades for {{ course.name }}, taught by {{ course.instructor }}.</h2>
+  <br>
+  <div class=course-report>
+    <span>Course average:</span>
+  </div>
   <form action="{{ url_for('add_grade',course_id=course.id) }}" method=post class=add-assignment>
     <h3>New Assignment</h3>
     <dl>
@@ -11,12 +15,9 @@
       <dd><input type=text size=30 name=points_earned>
       <dt>Total Points:
       <dd><input type=text size=30 name=total_points>
-      <dt>Category:
-      <dd><input type=text size=10 name=category>
-      <dd><input type=submit value="Add assignment">
-      <dd><input type=hidden name=year value="{{ year }}">
-      <dd><input type=hidden name=season value="{{ season }}">
     </dl>
+  </form>
+  <a href="{{ url_for('category') }}">add new category</a>
   <h4>Assignments for this course</h4>
   {% for a in assignments %}
     <div class=assignment>

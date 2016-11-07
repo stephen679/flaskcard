@@ -85,7 +85,6 @@ def initialize_database():
     db.create_all()
 
 @app.route('/')
-@login_required
 def show_semesters():
     """
     Show semesters for the logged-in user
@@ -168,6 +167,27 @@ def add_grade(course_id):
     db.session.commit()
     return redirect(url_for('course', course_id=course_id))
 
+@app.route('/category',methods=['GET'])
+@login_required
+def category():
+    categories = Category.query.all()
+    return render_template('category.html',categories=categories)
+
+@app.route('/category/add', methods=['POST'])
+@login_required
+def add_category():
+    name = request.form['name'].strip().lower()
+    weight = request.form['weight']
+    new_category = Category(name,request.form['weight'])
+    if Category.query.filter_by(name=name,weight=weight).first() is not None:
+        flash('Category already added')
+        return redirect(url_for('add_category'))
+    db.session.add(new_category)
+    db.session.commit()
+    return redirect(url_for('category'))
+
+
+
 @app.route('/course/<course_id>/assignments/<assignment_id>', methods=['GET'])
 @login_required
 def assignment(course_id,assignment_id):
@@ -181,6 +201,7 @@ def assignment(course_id,assignment_id):
         'course' : course
     }
     return render_template('assignment.html', **context)
+
 # running the app by itself from command line
 if __name__ == "__main__":
     app.run()
