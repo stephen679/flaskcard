@@ -144,14 +144,27 @@ def add_course():
 def course(course_id):
     course = Course.query.filter_by(id=course_id).first()
     if course is None:
-        return redirect(url_for('semester',year=request.form['year'],season=request.form['season']))
+        return redirect(url_for('show_semesters'))
     semester = Semester.query.filter_by(id=course.semester_id).first()
+    category_avgs = course_average(course)
     context = {
         'course' : course,
         'semester' : semester,
-        'assignments' : [assignment for assignment in course.assignments]
+        'assignments' : [assignment for assignment in course.assignments],
+        'categories' : [category for category in Category.query.all()],
+        'category_avgs' : category_avgs
     }
     return render_template('course.html',**context)
+
+def course_average(course):
+    categories = {}
+    for assignment in course.assignments:
+        category = Category.query.filter_by(id=assignment.category_id).first()
+        if category not in categories:
+            categories[category] = [0,0] # points earned, total points
+        categories[category][0] += assignment.earned_points
+        categories[category][1] += assignment.total_points
+    return categories
 
 @app.route('/course/<course_id>/add_grade', methods=['POST'])
 @login_required
@@ -161,8 +174,7 @@ def add_grade(course_id):
     assignment = Assignment(request.form['title'],
                             request.form['points_earned'],
                             request.form['total_points'],
-                            course_id,
-                            category=request.form['category'])
+                            course_id)
     db.session.add(assignment)
     db.session.commit()
     return redirect(url_for('course', course_id=course_id))
@@ -185,8 +197,6 @@ def add_category():
     db.session.add(new_category)
     db.session.commit()
     return redirect(url_for('category'))
-
-
 
 @app.route('/course/<course_id>/assignments/<assignment_id>', methods=['GET'])
 @login_required

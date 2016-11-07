@@ -5,6 +5,13 @@
   <br>
   <div class=course-report>
     <span>Course average:</span>
+    <ul>
+    {% for category in category_avgs %}
+      <h3>{{ category.name }}, {{ category.weight }}</h3>
+      <li>Earned points: {{ category_avgs[category][0] }}</li>
+      <li>Total points: {{ category_avgs[category][1] }}</li>
+    {% endfor %}
+    </ul>
   </div>
   <form action="{{ url_for('add_grade',course_id=course.id) }}" method=post class=add-assignment>
     <h3>New Assignment</h3>
@@ -15,7 +22,13 @@
       <dd><input type=text size=30 name=points_earned>
       <dt>Total Points:
       <dd><input type=text size=30 name=total_points>
+      <dd><input type=submit value="Add assignment">
     </dl>
+    <select name="category">
+      {% for category in categories %}
+        <option value="{{ category.name }}">{{ category.name }}: {{ category.weight }}</option>
+      {% endfor %}
+    </select>
   </form>
   <a href="{{ url_for('category') }}">add new category</a>
   <h4>Assignments for this course</h4>

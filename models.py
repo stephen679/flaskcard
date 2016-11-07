@@ -77,11 +77,12 @@ class Assignment(db.Model):
     course_id = db.Column(db.Integer,db.ForeignKey('course.id'))
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
 
-    def __init__(self,name,earned_points,total_points,course_id,category_id=None, description=None):
+    def __init__(self,name,earned_points,total_points,course_id,category_id, description=None):
         self.name = name
         self.earned_points = earned_points
         self.total_points = total_points
         self.course_id = course_id
+        self.category_id = category_id
         if description is not None:
             self.description = description
 
@@ -98,6 +99,3 @@ class Category(db.Model):
     def __init__(self, name, weight):
         self.name = name
         self.weight = weight
-        self.description = description
-        if assignments is not None:
-            self.assignments = assignments
