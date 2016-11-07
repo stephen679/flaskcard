@@ -23,12 +23,13 @@
       <dt>Total Points:
       <dd><input type=text size=30 name=total_points>
       <dd><input type=submit value="Add assignment">
-    </dl>
-    <select name="category">
+
+    <select name="category_id">
       {% for category in categories %}
-        <option value="{{ category.name }}">{{ category.name }}: {{ category.weight }}</option>
+        <option value="{{ category.id }}">{{ category.name }}: {{ category.weight }}</option>
       {% endfor %}
     </select>
+    </dl>
   </form>
   <a href="{{ url_for('category') }}">add new category</a>
   <h4>Assignments for this course</h4>

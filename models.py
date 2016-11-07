@@ -77,7 +77,7 @@ class Assignment(db.Model):
     course_id = db.Column(db.Integer,db.ForeignKey('course.id'))
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
 
-    def __init__(self,name,earned_points,total_points,course_id,category_id, description=None):
+    def __init__(self,name,earned_points,total_points,course_id,category_id,description=None):
         self.name = name
         self.earned_points = earned_points
         self.total_points = total_points

@@ -1,8 +1,6 @@
-# all the imports
 import sqlite3
-from flask import Flask, request, session, g, redirect, url_for, \
-     abort, render_template, flash
-from flaskext.mysql import MySQL
+from flask import Flask, request, session, g, redirect, url_for, abort,render_template, flash
+#from flaskext.mysql import MySQL
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user , logout_user , current_user , login_required
 from contextlib import closing # helps initialize a database so we don't have to hardcode
@@ -25,7 +23,6 @@ db.init_app(app)
 lm = LoginManager()
 lm.init_app(app)
 
-
 def get_current_user():
     if g.user is None:
         return None
@@ -37,6 +34,16 @@ def before_request():
     Ensure that the requests you make are associated with a user (for the most part)
     """
     g.user = current_user
+
+@app.before_first_request
+def initialize_database():
+    db.create_all()
+
+    # initialize a default category so that users can populate all their grades first
+    if len(Category.query.all()) == 0:
+        default_category = Category('default',1.0)
+        db.session.add(default_category)
+        db.session.commit()
 
 @lm.user_loader
 def load_user(user_id):
@@ -79,10 +86,6 @@ def logout():
     logout_user()
     flash('You logged out')
     return redirect(url_for('login'))
-
-@app.before_first_request
-def initialize_database():
-    db.create_all()
 
 @app.route('/')
 def show_semesters():
@@ -171,10 +174,13 @@ def course_average(course):
 def add_grade(course_id):
     course = Course.query.filter_by(id=course_id).first()
     semester = Semester.query.filter_by(id=course.semester_id).first()
+    print request.form
+    #TODO: validate course_id and category_id!!!!
     assignment = Assignment(request.form['title'],
                             request.form['points_earned'],
                             request.form['total_points'],
-                            course_id)
+                            course_id,
+                            request.form['category_id'])
     db.session.add(assignment)
     db.session.commit()
     return redirect(url_for('course', course_id=course_id))
@@ -212,6 +218,5 @@ def assignment(course_id,assignment_id):
     }
     return render_template('assignment.html', **context)
 
-# running the app by itself from command line
 if __name__ == "__main__":
     app.run()
