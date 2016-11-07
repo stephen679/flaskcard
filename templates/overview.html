@@ -19,8 +19,8 @@
 			<dt>Year:
 				<input type=text size=4 name=year>
 			<dd><input type=hidden name='user_id' value="{{ user.id }}">
-			<dd>{{ form.csrf_token }}<dd>
 			<dd><input type=submit value='Add new semester'>
 		</dl>
+		{{ form.csrf_token }}
 	</form>
 {% endblock %}

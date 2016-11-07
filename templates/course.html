@@ -31,6 +31,7 @@
       {% endfor %}
     </select>
     </dl>
+    {{ form.csrf_token }}
   </form>
   <a href="{{ url_for('category') }}">add new category</a>
   <h4>Assignments for this course</h4>

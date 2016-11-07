@@ -115,7 +115,6 @@ def add_semester():
             flash(f.errors)
     return redirect(url_for('show_semesters'))
 
-
 @app.route('/semester')
 @login_required
 def semester():
@@ -131,20 +130,21 @@ def semester():
         flash('Could not find a semester associated with %s %s for %s' % (season,year,get_current_user().id))
         return redirect(url_for('show_semesters'))
     courses = [course for course in semester.courses]
-    return render_template('semester.html', courses=courses,season=season,year=year,semester=semester)
+    return render_template('semester.html', courses=courses,season=season,year=year,semester=semester,form=CourseForm())
 
 
 @app.route('/semester/add_course', methods=['POST'])
 @login_required
 def add_course():
-    name = request.form['name']
-    instructor = request.form['instructor']
-    semester_id = request.form['semester_id']
-    new_course = Course(name,instructor,semester_id)
-
-    db.session.add(new_course)
-    db.session.commit()
-    flash('Course added!')
+    if request.form:
+        f = CourseForm(request.form)
+        if f.validate():
+            new_course = Course(f.data['name'],f.data['instructor'],f.data['semester_id'])
+            db.session.add(new_course)
+            db.session.commit()
+            flash('Course added!')
+        else:
+            flash(f.errors)
     year = request.form['year']
     season = request.form['season']
     return redirect(url_for('semester', season=season, year=year))

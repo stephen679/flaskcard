@@ -37,7 +37,7 @@ class AssignmentForm(Form):
 class CourseForm(Form):
     name = StringField('name', [validators.Length(max=128),validators.DataRequired()])
     instructor = StringField('instructor', [validators.Length(max=128), validators.DataRequired()])
-    semester_id = IntegerField('semester_id',[validators.Length(max=4), validators.DataRequired(), IdExists(Semester)])
+    semester_id = IntegerField('semester_id',[validators.DataRequired(), IdExists(Semester)])
 
 class CategoryForm(Form):
     name = StringField('name', [validators.Length(max=128),validators.DataRequired()])

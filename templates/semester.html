@@ -22,5 +22,6 @@
       <dd><input type=hidden name=season value="{{ semester.season }}">
       <dd><input type=hidden name=semester_id value="{{ semester.id }}">
     </dl>
+    {{ form.csrf_token }}
   </form>
 {% endblock %}
