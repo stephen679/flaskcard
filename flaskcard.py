@@ -204,7 +204,7 @@ def add_category():
     db.session.commit()
     return redirect(url_for('category'))
 
-@app.route('/course/<course_id>/assignments/<assignment_id>', methods=['GET'])
+@app.route('/course/<course_id>/assignments/<assignment_id>', methods=['GET','POST'])
 @login_required
 def assignment(course_id,assignment_id):
     assignment = Assignment.query.filter_by(id=assignment_id).first()

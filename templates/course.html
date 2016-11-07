@@ -4,12 +4,13 @@
   <h2> your grades for {{ course.name }}, taught by {{ course.instructor }}.</h2>
   <br>
   <div class=course-report>
-    <span>Course average:</span>
+    <span>Course summary for categories:</span>
     <ul>
     {% for category in category_avgs %}
-      <h3>{{ category.name }}, {{ category.weight }}</h3>
-      <li>Earned points: {{ category_avgs[category][0] }}</li>
-      <li>Total points: {{ category_avgs[category][1] }}</li>
+      <h4>Category: {{ category.name }}</h4>
+      <h4>Weight: {{ category.weight }}</h4>
+      <li>Total earned points: {{ category_avgs[category][0] }}</li>
+      <li>Total points possible: {{ category_avgs[category][1] }}</li>
     {% endfor %}
     </ul>
   </div>
