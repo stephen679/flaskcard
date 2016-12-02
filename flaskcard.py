@@ -241,7 +241,13 @@ def compute(course_id):
     course = Course.query.filter_by(id=course_id).first()
     if course is None:
         return redirect(url_for('semester'))
-    flash(course)
+    category_avgs = course_average(course)
+    percent = 0.0
+    for c in category_avgs:
+        percent += 1.0*c.weight*category_avgs[c][0]/category_avgs[c][1]
+    flash("Grade for this course: %.2f" % (percent*100.0))
+    if (percent*100.0) > 100.0:
+        flash("Grade for this course is over 100%. Please make sure this is correct and that the category weights are valid")
     return redirect(url_for('course',course_id=course_id))
 
 if __name__ == "__main__":
