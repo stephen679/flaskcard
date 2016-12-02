@@ -1,11 +1,12 @@
 {% extends 'layout.html' %}
 {% block body %}
 <div>
+  <h1>Course break-down of weights</h1>
   <div class=categories>
-    <h2>your categories.</h2>
+    <h2>category | weight </h2>
     <ul>
     {% for c in categories %}
-      <li>{{ c.name }} {{ c.weight }} weight</li>
+      <li>{{ c.name }} : {{ c.weight }}</li>
     {% endfor %}
   </div>
   <h3>Add a new category</h3>

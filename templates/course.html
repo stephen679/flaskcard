@@ -7,8 +7,7 @@
     <span>Course summary for categories:</span>
     <ul>
     {% for category in category_avgs %}
-      <h4>Category: {{ category.name }}</h4>
-      <h4>Weight: {{ category.weight }}</h4>
+      <h4>{{ category.name }} (weighted: {{ category.weight }})</h4>
       <li>Total earned points: {{ category_avgs[category][0] }}</li>
       <li>Total points possible: {{ category_avgs[category][1] }}</li>
     {% endfor %}
@@ -33,7 +32,8 @@
     </dl>
     {{ form.csrf_token }}
   </form>
-  <a href="{{ url_for('category') }}">add new category</a>
+  <a href="{{ url_for('compute',course_id=course.id) }}">Compute Grade</a><br>
+  <a href="{{ url_for('category',course_id=course.id) }}">Add New Category</a>
   <h4>Assignments for this course</h4>
   {% for a in assignments %}
     <div class=assignment>

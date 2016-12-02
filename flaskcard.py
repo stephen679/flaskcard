@@ -107,9 +107,12 @@ def add_semester():
     if request.form:
         f = SemesterForm(request.form)
         if f.validate():
-            db.session.add(Semester(f.data['season'],f.data['year'],f.data['user_id']))
-            db.session.commit()
-            flash('Semester has been added!')
+            if Semester.query.filter_by(season=f.data['season'].upper(),year=f.data['year']).first() is None:
+                db.session.add(Semester(f.data['season'].upper(),f.data['year'],f.data['user_id']))
+                db.session.commit()
+                flash('Semester has been added!')
+            else:
+                flash('Semester already added')
         else:
             # TODO: flash errors with red background
             flash(f.errors)
@@ -162,7 +165,8 @@ def course(course_id):
         'semester' : semester,
         'assignments' : [assignment for assignment in course.assignments],
         'categories' : [category for category in Category.query.all()],
-        'category_avgs' : category_avgs
+        'category_avgs' : category_avgs,
+        'form' : CourseForm(),
     }
     return render_template('course.html',**context)
 
@@ -192,10 +196,16 @@ def add_grade(course_id):
     db.session.commit()
     return redirect(url_for('course', course_id=course_id))
 
-@app.route('/category',methods=['GET'])
+@app.route('/category/<course_id>',methods=['GET'])
 @login_required
-def category():
-    categories = Category.query.all()
+def category(course_id):
+    print 'helo'
+    course = Course.query.filter_by(id=course_id).first()
+    if course is None:
+        flash('Course not found')
+        return redirect(url_for('show_semesters'))
+    assignments = course.assignments.all()
+    categories = set([Category.query.filter_by(id=a.category_id).first() for a in assignments])
     return render_template('category.html',categories=categories)
 
 @app.route('/category/add', methods=['POST'])
@@ -209,7 +219,7 @@ def add_category():
         return redirect(url_for('add_category'))
     db.session.add(new_category)
     db.session.commit()
-    return redirect(url_for('category'))
+    return redirect(url_for('show_semesters'))
 
 @app.route('/course/<course_id>/assignments/<assignment_id>', methods=['GET','POST'])
 @login_required
@@ -224,6 +234,15 @@ def assignment(course_id,assignment_id):
         'course' : course
     }
     return render_template('assignment.html', **context)
+
+@app.route('/course/<course_id>/compute', methods=['GET'])
+@login_required
+def compute(course_id):
+    course = Course.query.filter_by(id=course_id).first()
+    if course is None:
+        return redirect(url_for('semester'))
+    flash(course)
+    return redirect(url_for('course',course_id=course_id))
 
 if __name__ == "__main__":
     app.run()
