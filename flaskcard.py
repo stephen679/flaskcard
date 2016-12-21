@@ -39,7 +39,6 @@ def before_request():
 @app.before_first_request
 def initialize_database():
     db.create_all()
-
     # initialize a default category so that users can populate all their grades first
     if len(Category.query.all()) == 0:
         default_category = Category('default',1.0)
@@ -56,7 +55,7 @@ def register():
         return render_template('register.html')
 
     # Ensure unique usernames!
-    if User.query.filter_by(username=request.form['username']).first() is not None:
+    if User.query.filter_by(username=request.form['username'].lower()).first() is not None:
         flash('That username is already taken')
         return redirect(url_for('register'))
 
@@ -72,18 +71,23 @@ def login():
     if request.method == "POST":
         username = request.form['username']
         password = request.form['password']
-        registered_user = User.query.filter_by(username=username,password=password).first()
+        registered_user = User.query.filter_by(username=username.lower(),password=password).first()
         if registered_user is None:
             flash('Username or Password is invalid' , 'error')
             return redirect(url_for('login'))
         login_user(registered_user)
         flash('You\'re logged in')
+
+        # Go to the next page specified in HTML or default show_semesters
         return redirect(request.args.get('next') or url_for('show_semesters'))
     return render_template('login.html', error=err)
 
 @app.route('/logout')
 @login_required
 def logout():
+    """
+    If logged in, log the user out
+    """
     logout_user()
     flash('You logged out')
     return redirect(url_for('login'))
@@ -93,6 +97,7 @@ def show_semesters():
     """
     Show semesters for the logged-in user
     """
+    # Current user is a global managed by LoginManager
     user = User.query.filter_by(id=current_user.get_id()).first()
     if user is None:
         return redirect(url_for('login'))
@@ -110,12 +115,11 @@ def add_semester():
             if Semester.query.filter_by(season=f.data['season'].upper(),year=f.data['year']).first() is None:
                 db.session.add(Semester(f.data['season'].upper(),f.data['year'],f.data['user_id']))
                 db.session.commit()
-                flash('Semester has been added!')
             else:
                 flash('Semester already added')
         else:
-            # TODO: flash errors with red background
             flash(f.errors)
+    flash('Semester has been added!')
     return redirect(url_for('show_semesters'))
 
 @app.route('/semester')
@@ -185,7 +189,6 @@ def course_average(course):
 def add_grade(course_id):
     course = Course.query.filter_by(id=course_id).first()
     semester = Semester.query.filter_by(id=course.semester_id).first()
-    print request.form
     #TODO: validate course_id and category_id!!!!
     assignment = Assignment(request.form['title'],
                             request.form['points_earned'],
@@ -247,7 +250,7 @@ def compute(course_id):
         percent += 1.0*c.weight*category_avgs[c][0]/category_avgs[c][1]
     flash("Grade for this course: %.2f" % (percent*100.0))
     if (percent*100.0) > 100.0:
-        flash("Grade for this course is over 100%. Please make sure this is correct and that the category weights are valid")
+        flash("Grade for this course is over 100%. Ensure that this is correct and that the category weights are valid.")
     return redirect(url_for('course',course_id=course_id))
 
 if __name__ == "__main__":
