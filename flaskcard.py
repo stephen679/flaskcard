@@ -13,12 +13,8 @@ app.config['DEBUG'] = True
 app.config['SECRET_KEY'] = 'development key'
 app.config['USERNAME'] = 'admin'
 app.config['PASSWORD'] = 'default'
-# app.config['MYSQL_DATABASE_USER'] = 'root'
-# app.config['MYSQL_DATABASE_PASSWORD'] = 'root'
-# app.config['MYSQL_DATABASE_DB'] = 'EmpData'
-# app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/flaskcard.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:@localhost:3306/flaskcard'
 
 db.init_app(app)
 lm = LoginManager()
