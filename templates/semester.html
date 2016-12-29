@@ -1,6 +1,6 @@
 {% extends 'layout.html' %}
 {% block body %}
-  <h2>your courses for {{ semester.season }} {{ semester.year }}.</h2>
+  <h2>your courses for {{ semester.season.lower() }} {{ semester.year }}.</h2>
   <div class=courses>
     <h3>Courses:</h3>
     <ul>
