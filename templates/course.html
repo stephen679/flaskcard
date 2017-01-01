@@ -34,7 +34,7 @@
   </form>
   <a href="{{ url_for('compute',course_id=course.id) }}">Compute Grade</a><br>
   <a href="{{ url_for('category',course_id=course.id) }}">Add New Category</a>
-  <h4>Assignments for this course</h4>
+  <h4>Completed coursework:</h4>
   {% for a in assignments %}
     <div class=assignment>
       <span class=assignment-name> {{ a.title }}</span>

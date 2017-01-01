@@ -1,7 +1,14 @@
 {% extends 'layout.html' %}
 {% block body %}
-  <h2>your grade for {{ assignment.name }}.</h2><br>
-  Earned: {{ assignment.earned_points }}
-  <br>
-  Total: {{ assignment.total_points }}
+  <h2>your grade for {{ assignment.name }}: {{ assignment.earned_points }}/{{ assignment.total_points }}</h2><br>
+  <form action="{{ url_for('update_assignment',course_id=course.id,assignment_id=assignment.id) }}" method=post>
+    <h3>Update Assignment</h3>
+    <dl>
+      <dt>Points Earned:
+      <dd><input type=text size=30 name=points_earned>
+      <dt>Total Points:
+      <dd><input type=text size=30 name=total_points>
+      <dd><input type=submit value="Update assignment">
+    </dl>
+  </form>
 {% endblock %}
