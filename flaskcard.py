@@ -115,7 +115,6 @@ def add_semester():
                 flash('Semester already added')
         else:
             flash(f.errors)
-    flash('Semester has been added!')
     return redirect(url_for('show_semesters'))
 
 @app.route('/semester')
