@@ -240,10 +240,8 @@ def compute(course_id):
     if course is None:
         return redirect(url_for('semester'))
     category_avgs = course_average(course)
-    percent = 0.0
-    for c in category_avgs:
-        percent += 1.0*c.weight*category_avgs[c][0]/category_avgs[c][1]
-    flash("Grade for this course: %.2f" % (percent*100.0))
+    percent = reduce(lambda acc,c:acc + 1.0*c.weight*category_avgs[c][0]/category_avgs[c][1],category_avgs,0.0)
+    flash("Grade for this course: %.2f %%" % (percent*100.0))
     if (percent*100.0) > 100.0:
         flash("Grade for this course is over 100%. Ensure that this is correct and that the category weights are valid.")
     return redirect(url_for('course',course_id=course_id))

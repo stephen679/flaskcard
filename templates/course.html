@@ -39,8 +39,7 @@
     <div class=assignment>
       <span class=assignment-name> {{ a.title }}</span>
       {{ a.name }}:
-      {{ a.earned_points }}
-      {{ a.total_points }}
+      {{ a.earned_points }}/{{ a.total_points }}
       {{ a.category }}
       <a href="{{ url_for('assignment', course_id=course.id, assignment_id=a.id) }}">edit</a>
     </div>
