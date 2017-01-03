@@ -101,7 +101,6 @@ class Category(db.Model):
         self.course_id = course_id
 
     def compute_average(self):
-
         return self.compute_raw_earned()*1.0/self.compute_raw_total()*self.weight
 
     def compute_raw_earned(self):

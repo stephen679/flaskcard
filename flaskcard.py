@@ -177,10 +177,6 @@ def course(course_id):
     return render_template('course.html',**context)
 
 def course_average(course):
-    total_avg = 0.0
-    for c in course.categories:
-        total_avg += c.compute_average()
-        print total_avg
     return reduce(lambda total_avg,c: c.compute_average()+total_avg,course.categories,0.0)
 
 @app.route('/course/<course_id>/add_grade', methods=['POST'])
@@ -229,10 +225,9 @@ def assignment(course_id,assignment_id):
     if assignment is None:
         flash('Assignment does not exist in our database!')
         return redirect(url_for('course',course_id=course_id))
-    course = Course.query.filter_by(id=assignment.course_id).first()
     context = {
         'assignment' : assignment,
-        'course' : course
+        'course_id' : course_id
     }
     return render_template('assignment.html', **context)
 
@@ -241,12 +236,13 @@ def assignment(course_id,assignment_id):
 def update_assignment(course_id,assignment_id):
     assignment = Assignment.query.filter_by(id=assignment_id).first()
     if assignment is None:
+        print 'hello'
         flash('Assignment does not exist in our database!')
         return redirect(url_for('course',course_id=course_id))
     assignment.earned_points = request.form['points_earned']
     assignment.total_points = request.form['total_points']
     db.session.commit()
-    return redirect(url_for('course',course_id=course_id))
+    return redirect(url_for('compute',course_id=course_id))
 
 @app.route('/course/<course_id>/compute', methods=['GET'])
 @login_required
@@ -255,7 +251,6 @@ def compute(course_id):
     if course is None:
         return redirect(url_for('semester'))
     percent = course_average(course)
-    print percent
     flash("Grade for this course: %.2f %%" % (percent*100.0))
     if (percent*100.0) > 100.0:
         flash("Grade for this course is over 100%. Ensure that this is correct and that the category weights are valid.")
