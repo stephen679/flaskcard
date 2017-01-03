@@ -188,7 +188,6 @@ def add_grade(course_id):
     assignment = Assignment(request.form['title'],
                             request.form['points_earned'],
                             request.form['total_points'],
-                            course_id,
                             request.form['category_id'])
     db.session.add(assignment)
     db.session.commit()
