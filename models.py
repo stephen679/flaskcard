@@ -101,9 +101,9 @@ class Category(db.Model):
         self.course_id = course_id
 
     def compute_average(self):
-        return reduce(lambda total,assignment: total +
-                        (1.0*assignment.earned_points / assignment.total_points) *
-                        self.weight,self.assignments,0.0)
+
+        return self.compute_raw_earned()*1.0/self.compute_raw_total()*self.weight
+
     def compute_raw_earned(self):
         return reduce(lambda total,assignment: total + assignment.earned_points,self.assignments,0)
 

@@ -177,6 +177,10 @@ def course(course_id):
     return render_template('course.html',**context)
 
 def course_average(course):
+    total_avg = 0.0
+    for c in course.categories:
+        total_avg += c.compute_average()
+        print total_avg
     return reduce(lambda total_avg,c: c.compute_average()+total_avg,course.categories,0.0)
 
 @app.route('/course/<course_id>/add_grade', methods=['POST'])
@@ -250,7 +254,8 @@ def compute(course_id):
     course = Course.query.filter_by(id=course_id).first()
     if course is None:
         return redirect(url_for('semester'))
-    percent= course_average(course)
+    percent = course_average(course)
+    print percent
     flash("Grade for this course: %.2f %%" % (percent*100.0))
     if (percent*100.0) > 100.0:
         flash("Grade for this course is over 100%. Ensure that this is correct and that the category weights are valid.")
