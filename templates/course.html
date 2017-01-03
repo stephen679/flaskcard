@@ -6,10 +6,10 @@
   <div class=course-report>
     <span>Course summary for categories:</span>
     <ul>
-    {% for category in category_avgs %}
+    {% for category in categories %}
       <h4>{{ category.name }} (weighted: {{ category.weight }})</h4>
-      <li>Total earned points: {{ category_avgs[category][0] }}</li>
-      <li>Total points possible: {{ category_avgs[category][1] }}</li>
+      <li>Total earned points: {{ category.compute_raw_earned() }}</li>
+      <li>Total points possible: {{ category.compute_raw_total() }}</li>
     {% endfor %}
     </ul>
   </div>

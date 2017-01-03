@@ -56,14 +56,14 @@ class Course(db.Model):
     semester_id = db.Column(db.Integer,db.ForeignKey('semester.id'))
     name = db.Column(db.String(128))
     instructor = db.Column(db.String(128))
-    assignments = db.relationship('Assignment', backref='course',lazy='dynamic')
+    categories = db.relationship('Category', backref='course',lazy='dynamic')
 
-    def __init__(self, name, instructor,semester_id,assignments=None):
+    def __init__(self, name, instructor,semester_id,categories=None):
         self.semester_id = semester_id
         self.name = name
         self.instructor = instructor
-        if assignments is not None:
-            self.assignments = None
+        if categories is not None:
+            self.categories = categories
 
     def __repr__(self):
         return '<Course: %r, Taught by: %r>' % (self.name, self.instructor)
@@ -74,15 +74,13 @@ class Assignment(db.Model):
     earned_points = db.Column(db.Integer)
     total_points = db.Column(db.Integer)
     description = (db.Column(db.String(128)))
-    course_id = db.Column(db.Integer,db.ForeignKey('course.id'))
-    category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
+    category_id = db.Column(db.Integer,db.ForeignKey('category.id'))
 
-    def __init__(self,name,earned_points,total_points,course_id,category_id,description=None):
+    def __init__(self,name,earned_points,total_points,category_id,description=None):
         self.name = name
         self.earned_points = earned_points
         self.total_points = total_points
-        self.course_id = course_id
-        self.category_id = category_id
+        self.category_id = category
         if description is not None:
             self.description = description
 
@@ -95,7 +93,19 @@ class Category(db.Model):
     name = db.Column(db.String(128))
     weight = db.Column(db.Float) # 0.0 < weight <= 1.0
     assignments = db.relationship('Assignment', backref='person', lazy='dynamic')
+    course_id = db.Column(db.Integer,db.ForeignKey('course.id'))
 
-    def __init__(self, name, weight):
+    def __init__(self, name, weight,course_id):
         self.name = name
         self.weight = weight
+        self.course_id = course_id
+
+    def compute_average(self):
+        return reduce(lambda total,assignment: total +
+                        (1.0*assignment.earned_points / assignment.total_points) *
+                        self.weight,self.assignments,0.0)
+    def compute_raw_earned(self):
+        return reduce(lambda total,assignment: total + assignment.earned_points,self.assignments,0)
+        
+    def compute_raw_total(self):
+        return reduce(lambda total, assignment: total + assignment.total_points,self.assignments,0)

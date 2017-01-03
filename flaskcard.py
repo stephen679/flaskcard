@@ -36,10 +36,6 @@ def before_request():
 def initialize_database():
     db.create_all()
     # initialize a default category so that users can populate all their grades first
-    if len(Category.query.all()) == 0:
-        default_category = Category('default',1.0)
-        db.session.add(default_category)
-        db.session.commit()
 
 @lm.user_loader
 def load_user(user_id):
@@ -141,10 +137,22 @@ def add_course():
     if request.form:
         f = CourseForm(request.form)
         if f.validate():
+            print request.form
+            for key in request.form:
+                print request.form[key]
             new_course = Course(f.data['name'],f.data['instructor'],f.data['semester_id'])
             db.session.add(new_course)
             db.session.commit()
+            category_names = map(lambda key: request.form[key], filter(lambda kv: kv.startswith('category'),request.form))
+            category_weights = map(lambda key: request.form[key],filter(lambda kv: kv.startswith('weight'),request.form))
+            print category_names
+            print category_weights
+            for i in xrange(len(category_names)):
+                new_category = Category(category_names[i],category_weights[i],new_course.id)
+                db.session.add(new_category)
+                db.session.commit()
             flash('Course added!')
+
         else:
             flash(f.errors)
     year = request.form['year']
@@ -158,26 +166,18 @@ def course(course_id):
     if course is None:
         return redirect(url_for('show_semesters'))
     semester = Semester.query.filter_by(id=course.semester_id).first()
-    category_avgs = course_average(course)
+    course_avg = course_average(course)
     context = {
         'course' : course,
         'semester' : semester,
-        'assignments' : [assignment for assignment in course.assignments],
         'categories' : [category for category in Category.query.all()],
-        'category_avgs' : category_avgs,
+        'course_avg' : course_avg,
         'form' : CourseForm(),
     }
     return render_template('course.html',**context)
 
 def course_average(course):
-    categories = {}
-    for assignment in course.assignments:
-        category = Category.query.filter_by(id=assignment.category_id).first()
-        if category not in categories:
-            categories[category] = [0,0] # points earned, total points
-        categories[category][0] += assignment.earned_points
-        categories[category][1] += assignment.total_points
-    return categories
+    return reduce(lambda total_avg,c: c.compute_average()+total_avg,course.categories,0.0)
 
 @app.route('/course/<course_id>/add_grade', methods=['POST'])
 @login_required
@@ -251,8 +251,7 @@ def compute(course_id):
     course = Course.query.filter_by(id=course_id).first()
     if course is None:
         return redirect(url_for('semester'))
-    category_avg_dict = course_average(course)
-    percent = reduce(lambda acc,c:acc + 1.0*c.weight*category_avg_dict[c][0]/category_avg_dict[c][1],category_avg_dict,0.0)
+    percent,earned_points,total_points = course_average(course)
     flash("Grade for this course: %.2f %%" % (percent*100.0))
     if (percent*100.0) > 100.0:
         flash("Grade for this course is over 100%. Ensure that this is correct and that the category weights are valid.")
