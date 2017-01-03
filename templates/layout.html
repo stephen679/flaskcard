@@ -1,5 +1,11 @@
 <!DOCTYPE html>
-<title>Flaskcard</title>
+<head>
+	<!-- http://www.giantflyingsaucer.com/blog/?p=4310 -->
+		<title>Flaskcard</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+		<script type=text/javascript> var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};</script>
+		<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+</head>
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
 <div class=page>
 	<h1> Flaskcard </h1>
@@ -16,6 +22,7 @@
 		<div class=flash>{{ message }}</div>
 	{% endfor %}
 	{% block body %}
-	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 	{% endblock %} <!-- This will be where we put content -->
 </div>
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+</html>

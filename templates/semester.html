@@ -11,17 +11,23 @@
       {% endfor %}
     </ul>
   </div>
-  <form action="{{ url_for('add_course') }}" method=post class=add_course>
+  <form class="extendable-form" action="{{ url_for('add_course') }}" method=post class=add_course>
     <dl>
       <dt>Course Name:
       <dd><input type=text size=30 name=name>
       <dt>Instructor:
-        <input type=text size=30 name=instructor>
+        <input type=text sxize=30 name=instructor>
       <dd><input type=submit value=Add>
       <dd><input type=hidden name=year value="{{ semester.year }}">
       <dd><input type=hidden name=season value="{{ semester.season }}">
       <dd><input type=hidden name=semester_id value="{{ semester.id }}">
     </dl>
     {{ form.csrf_token }}
+    <div class="extendable-field" name="extendable-1">
+      <span>Category Name: </span><input type="text" name="category-1"/>
+      <span>Weight: </span><input type="text" name="weight-1"/>
+    </div>
   </form>
+  <input type="button" value="+ Add category" id="extendable"/>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
 {% endblock %}
