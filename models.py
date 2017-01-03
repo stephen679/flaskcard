@@ -80,7 +80,7 @@ class Assignment(db.Model):
         self.name = name
         self.earned_points = earned_points
         self.total_points = total_points
-        self.category_id = category
+        self.category_id = category_id
         if description is not None:
             self.description = description
 
@@ -106,6 +106,6 @@ class Category(db.Model):
                         self.weight,self.assignments,0.0)
     def compute_raw_earned(self):
         return reduce(lambda total,assignment: total + assignment.earned_points,self.assignments,0)
-        
+
     def compute_raw_total(self):
         return reduce(lambda total, assignment: total + assignment.total_points,self.assignments,0)
