@@ -12,7 +12,24 @@
       <li>Total points possible: {{ category.compute_raw_total() }}</li>
     {% endfor %}
     </ul>
+    </div>
+    <a href="{{ url_for('compute',course_id=course.id) }}">Compute Grade</a><br>
+    <a href="#">Edit categories</a>
+    <h4>Completed assignments:</h4>
+    {% for c in categories %}
+      {% for a in c.assignments %}
+        <div class=assignment>
+          <span class=assignment-name> {{ a.title }}</span>
+          {{ a.name }}:
+          {{ a.earned_points }}/{{ a.total_points }}
+          {{ a.category }}
+          <a href="{{ url_for('assignment', course_id=course.id, assignment_id=a.id) }}">edit</a>
+          <a href="#">grade projection</a>
+        </div>
+      {% endfor %}
+    {% endfor %}
   </div>
+  <hr>
   <form action="{{ url_for('add_grade',course_id=course.id) }}" method=post class=add-assignment>
     <h3>New Assignment</h3>
     <dl>
@@ -32,19 +49,4 @@
     </dl>
     {{ form.csrf_token }}
   </form>
-  <a href="{{ url_for('compute',course_id=course.id) }}">Compute Grade</a><br>
-  <a href="{{ url_for('category',course_id=course.id) }}">Add New Category</a>
-  <h4>Completed assignments:</h4>
-  {% for c in categories %}
-    {% for a in c.assignments %}
-      <div class=assignment>
-        <span class=assignment-name> {{ a.title }}</span>
-        {{ a.name }}:
-        {{ a.earned_points }}/{{ a.total_points }}
-        {{ a.category }}
-        <a href="{{ url_for('assignment', course_id=course.id, assignment_id=a.id) }}">edit</a>
-      </div>
-    {% endfor %}
-  {% endfor %}
-</div>
 {% endblock %}

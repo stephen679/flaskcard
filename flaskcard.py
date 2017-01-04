@@ -21,6 +21,11 @@ lm = LoginManager()
 lm.init_app(app)
 
 def get_current_user():
+    """
+    Utilize the g module to keep track of who is currently logged in
+    Args:
+        None
+    """
     if g.user is None:
         return None
     return User.query.filter_by(id=current_user.get_id()).first()
@@ -34,6 +39,9 @@ def before_request():
 
 @app.before_first_request
 def initialize_database():
+    """
+    Create database models and relationships before the first request
+    """
     db.create_all()
     # initialize a default category so that users can populate all their grades first
 
@@ -45,12 +53,10 @@ def load_user(user_id):
 def register():
     if request.method == 'GET':
         return render_template('register.html')
-
     # Ensure unique usernames!
     if User.query.filter_by(username=request.form['username'].lower()).first() is not None:
         flash('That username is already taken')
         return redirect(url_for('register'))
-
     new_user = User(request.form['username'],request.form['password'])
     db.session.add(new_user)
     db.session.commit()
@@ -69,7 +75,6 @@ def login():
             return redirect(url_for('login'))
         login_user(registered_user)
         flash('You\'re logged in')
-
         # Go to the next page specified in HTML or default show_semesters
         return redirect(request.args.get('next') or url_for('show_semesters'))
     return render_template('login.html', error=err)
@@ -99,6 +104,9 @@ def show_semesters():
 @app.route('/add_semester', methods=['POST'])
 @login_required
 def add_semester():
+    """
+    Add a new semseter in a user's history
+    """
     # TODO: separate form validation and object creation
     # semester = SemesterForm(request.POST,None)
     if request.form:
@@ -125,11 +133,10 @@ def semester():
     # TODO: show courses that exist for that semester
     semester = Semester.query.filter_by(season=season,year=year,user_id=get_current_user().id).first()
     if semester is None:
-        flash('Could not find a semester associated with %s %s for %s' % (season,year,get_current_user().id))
+        flash('%s year: %s for user: %s does not exist in the database' % (season,year,get_current_user().id))
         return redirect(url_for('show_semesters'))
     courses = [course for course in semester.courses]
     return render_template('semester.html', courses=courses,season=season,year=year,semester=semester,form=CourseForm())
-
 
 @app.route('/semester/add_course', methods=['POST'])
 @login_required
@@ -137,22 +144,17 @@ def add_course():
     if request.form:
         f = CourseForm(request.form)
         if f.validate():
-            print request.form
-            for key in request.form:
-                print request.form[key]
+            #TODO: put this into form, and validate
             new_course = Course(f.data['name'],f.data['instructor'],f.data['semester_id'])
             db.session.add(new_course)
             db.session.commit()
             category_names = map(lambda key: request.form[key], filter(lambda kv: kv.startswith('category'),request.form))
             category_weights = map(lambda key: request.form[key],filter(lambda kv: kv.startswith('weight'),request.form))
-            print category_names
-            print category_weights
             for i in xrange(len(category_names)):
                 new_category = Category(category_names[i],category_weights[i],new_course.id)
                 db.session.add(new_category)
                 db.session.commit()
             flash('Course added!')
-
         else:
             flash(f.errors)
     year = request.form['year']
@@ -166,11 +168,14 @@ def course(course_id):
     if course is None:
         return redirect(url_for('show_semesters'))
     semester = Semester.query.filter_by(id=course.semester_id).first()
-    course_avg = course_average(course)
+    try:
+        course_avg = course_average(course)
+    except:
+        course_avg = "No points earned so far"
     context = {
         'course' : course,
         'semester' : semester,
-        'categories' : [category for category in Category.query.all()],
+        'categories' : [category for category in Category.query.filter_by(course_id=course.id)],
         'course_avg' : course_avg,
         'form' : CourseForm(),
     }
@@ -196,7 +201,6 @@ def add_grade(course_id):
 @app.route('/category/<course_id>',methods=['GET'])
 @login_required
 def category(course_id):
-    print 'helo'
     course = Course.query.filter_by(id=course_id).first()
     if course is None:
         flash('Course not found')
@@ -236,7 +240,6 @@ def assignment(course_id,assignment_id):
 def update_assignment(course_id,assignment_id):
     assignment = Assignment.query.filter_by(id=assignment_id).first()
     if assignment is None:
-        print 'hello'
         flash('Assignment does not exist in our database!')
         return redirect(url_for('course',course_id=course_id))
     assignment.earned_points = request.form['points_earned']

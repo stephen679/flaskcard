@@ -1,6 +1,6 @@
 {% extends 'layout.html' %}
 {% block body %}
-	<h2>your semesters.</h2>
+	<h2>your semesters</h2>
 	<ul class=semesters>
 	{% for semester in semesters %}
 		<li>
@@ -12,18 +12,18 @@
 		<li><em>No semesters created so far :(</em>
 	{% endfor %}
 	</ul>
+	<hr>
+	<h3>Create a new semester</h3>
 	<form action="{{ url_for('add_semester') }}" method=post class=add-semseter>
 		<select name="season">
       {% for category in ['WINTER','SPRING','SUMMER','FALL'] %}
         <option value="{{ category }}">{{ category }}</option>
       {% endfor %}
     </select>
-		<dl>
-			<dt>Year:
-				<input type=text size=4 name=year>
-			<dd><input type=hidden name='user_id' value="{{ user.id }}">
-			<dd><input type=submit value='Add new semester'>
-		</dl>
+		<span>Year: </span>
+		<input type=text size=4 name=year>
+		<input type=hidden name='user_id' value="{{ user.id }}">
+		<input type=submit value='Add new semester'>
 		{{ form.csrf_token }}
 	</form>
 {% endblock %}
