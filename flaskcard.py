@@ -185,6 +185,9 @@ def course(course_id):
     return render_template('course.html',**context)
 
 def course_average(course):
+    # TODO: compute average for categories that actually have points
+    #       i.e, if you didn't take a final worth 30%, but you have stuff in the remaining
+    #       70%, you should be computing your average/0.70
     return reduce(lambda total_avg,c: c.compute_average()+total_avg if c.compute_raw_total() > 0.0 else total_avg,course.categories,0.0)
 
 @app.route('/course/<course_id>/add_grade', methods=['POST'])
