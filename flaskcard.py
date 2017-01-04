@@ -16,6 +16,8 @@ app.config['PASSWORD'] = 'default'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:@localhost:3306/flaskcard'
 
+# db comes from models.py
+# TODO: create database if it doesn't exist. Or should that be admin's manual job?
 db.init_app(app)
 lm = LoginManager()
 lm.init_app(app)
@@ -42,6 +44,7 @@ def initialize_database():
     """
     Create database models and relationships before the first request
     """
+    db.engine.execute('CREATE DATABASE IF NOT EXISTS flaskcard')
     db.create_all()
     # initialize a default category so that users can populate all their grades first
 
@@ -182,7 +185,7 @@ def course(course_id):
     return render_template('course.html',**context)
 
 def course_average(course):
-    return reduce(lambda total_avg,c: c.compute_average()+total_avg,course.categories,0.0)
+    return reduce(lambda total_avg,c: c.compute_average()+total_avg if c.compute_raw_total() > 0.0 else total_avg,course.categories,0.0)
 
 @app.route('/course/<course_id>/add_grade', methods=['POST'])
 @login_required
@@ -253,10 +256,13 @@ def compute(course_id):
     course = Course.query.filter_by(id=course_id).first()
     if course is None:
         return redirect(url_for('semester'))
-    percent = course_average(course)
-    flash("Grade for this course: %.2f %%" % (percent*100.0))
-    if (percent*100.0) > 100.0:
-        flash("Grade for this course is over 100%. Ensure that this is correct and that the category weights are valid.")
+    try:
+        percent = course_average(course)
+        flash("Grade for this course: %.2f %%" % (percent*100.0))
+        if (percent*100.0) > 100.0:
+            flash("Grade for this course is over 100%. Ensure that this is correct and that the category weights are valid.")
+    except:
+        flash("No points earned so far, cannot compute grade")
     return redirect(url_for('course',course_id=course_id))
 
 if __name__ == "__main__":

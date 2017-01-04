@@ -22,7 +22,7 @@
       <label>Instructor: </label>
       <input type=text name=instructor>
     </p>
-    <input type=submit value=Add><br><br>
+    <input type=submit value='Done with course creation'><br><br>
     <input type=hidden name=year value="{{ semester.year }}">
     <input type=hidden name=season value="{{ semester.season }}">
     <input type=hidden name=semester_id value="{{ semester.id }}">
@@ -31,12 +31,13 @@
       <p>
         <label>Category Name: </label>
         <input type="text" name="category-1"/>
+        <input type="button" value="+ Add category" id="extendable"/>
       </p>
       <p>
         <label>Weight: </label>
         <input type="text" name="weight-1"/>
       </p>
-      <input type="button" value="+ Add category" id="extendable"/>
+      <br>
     </div>
   </form>
   <script src="{{ url_for('static', filename='script.js') }}"></script>
