@@ -185,10 +185,10 @@ def course(course_id):
     return render_template('course.html',**context)
 
 def course_average(course):
-    # TODO: compute average for categories that actually have points
-    #       i.e, if you didn't take a final worth 30%, but you have stuff in the remaining
-    #       70%, you should be computing your average/0.70
     return reduce(lambda total_avg,c: c.compute_average()+total_avg if c.compute_raw_total() > 0.0 else total_avg,course.categories,0.0)
+
+def completed_categories_weight(course):
+    return reduce(lambda weight,c: c.weight+weight if c.compute_raw_total() > 0.0 else weight, course.categories,0.0)
 
 @app.route('/course/<course_id>/add_grade', methods=['POST'])
 @login_required
@@ -261,7 +261,8 @@ def compute(course_id):
         return redirect(url_for('semester'))
     try:
         percent = course_average(course)
-        flash("Grade for this course: %.2f %%" % (percent*100.0))
+        total_weight = completed_categories_weight(course)
+        flash("Grade for this course: %.2f%%. %.2f%% total weight counted" % (percent/total_weight*100.0,total_weight*100.0))
         if (percent*100.0) > 100.0:
             flash("Grade for this course is over 100%. Ensure that this is correct and that the category weights are valid.")
     except:
