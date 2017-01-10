@@ -64,7 +64,7 @@ def register():
     if User.query.filter_by(username=request.form['username'].lower()).first() is not None:
         flash('That username is already taken')
         return redirect(url_for('register'))
-    new_user = User(request.form['username'],request.form['password'])
+    new_user = User(username=request.form['username'],password=request.form['password'])
     db.session.add(new_user)
     db.session.commit()
     flash('User registered!')
@@ -120,7 +120,7 @@ def add_semester():
         f = SemesterForm(request.form)
         if f.validate():
             if Semester.query.filter_by(season=f.data['season'].upper(),year=f.data['year']).first() is None:
-                db.session.add(Semester(f.data['season'].upper(),f.data['year'],f.data['user_id']))
+                db.session.add(Semester(season=f.data['season'].upper(),year=f.data['year'],user_id=f.data['user_id']))
                 db.session.commit()
             else:
                 flash('Semester already added')
@@ -151,22 +151,25 @@ def add_course():
     if request.form:
         f = CourseForm(request.form)
         if f.validate():
-            #TODO: put this into form, and validate
-            new_course = Course(f.data['name'],f.data['instructor'],f.data['semester_id'])
+            #TODO: validate Category weight summation
+            new_course = Course(
+                name = f.data['name'],
+                instructor = f.data['instructor'],
+                semester_id = f.data['semester_id'])
             db.session.add(new_course)
             db.session.commit()
             category_names = map(lambda key: request.form[key], filter(lambda kv: kv.startswith('category'),request.form))
             category_weights = map(lambda key: request.form[key],filter(lambda kv: kv.startswith('weight'),request.form))
             for i in xrange(len(category_names)):
-                new_category = Category(category_names[i],category_weights[i],new_course.id)
+                new_category = Category(name=category_names[i],
+                                        weight=category_weights[i],
+                                        course_id=new_course.id)
                 db.session.add(new_category)
-                db.session.commit()
+            db.session.commit()
             flash('Course added!')
         else:
             flash(f.errors)
-    year = request.form['year']
-    season = request.form['season']
-    return redirect(url_for('semester', season=season, year=year))
+    return redirect(url_for('semester', season=request.form['season'], year=request.form['year']))
 
 @app.route('/course/<course_id>', methods=['GET'])
 @login_required
@@ -203,10 +206,10 @@ def add_grade(course_id):
     # must ensure all elements in form are present!
     f = AssignmentForm(request.form)
     if f.validate():
-        assignment = Assignment(f.data['name'],
-                                f.data['earned_points'],
-                                f.data['total_points'],
-                                f.data['category_id'])
+        assignment = Assignment(name=f.data['name'],
+                                earned_points=f.data['earned_points'],
+                                total_points=f.data['total_points'],
+                                category_id=f.data['category_id'])
         db.session.add(assignment)
         db.session.commit()
     else:

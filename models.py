@@ -14,7 +14,7 @@ class User(db.Model):
     last_name = db.Column(db.String(80))
     semesters = db.relationship('Semester', backref='person',lazy='dynamic')
 
-    def __init__(self, username, password):
+    def __init__(self, username="", password=""):
         self.username = username
         self.password = password
 
@@ -43,7 +43,7 @@ class Semester(db.Model):
     user_id = db.Column(db.Integer,db.ForeignKey('user.id')) # attached to a user model
     courses = db.relationship('Course', backref='semester',lazy='dynamic') # one-to-many, Semester* to courses
 
-    def __init__(self,season,year,user_id):
+    def __init__(self,season="WINTER",year=2016,user_id=-1):
         self.season = season
         self.year = year
         self.user_id = user_id
@@ -58,7 +58,7 @@ class Course(db.Model):
     instructor = db.Column(db.String(128))
     categories = db.relationship('Category', backref='course',lazy='dynamic')
 
-    def __init__(self, name, instructor,semester_id,categories=None):
+    def __init__(self, name="", instructor="",semester_id=-1,categories=None):
         self.semester_id = semester_id
         self.name = name
         self.instructor = instructor
@@ -76,7 +76,7 @@ class Assignment(db.Model):
     description = (db.Column(db.String(128)))
     category_id = db.Column(db.Integer,db.ForeignKey('category.id'))
 
-    def __init__(self,name,earned_points,total_points,category_id,description=None):
+    def __init__(self,name="",earned_points=0.0,total_points=0.0,category_id=-1,description=None):
         self.name = name
         self.earned_points = earned_points
         self.total_points = total_points
@@ -95,7 +95,7 @@ class Category(db.Model):
     assignments = db.relationship('Assignment', backref='person', lazy='dynamic')
     course_id = db.Column(db.Integer,db.ForeignKey('course.id'))
 
-    def __init__(self, name, weight,course_id):
+    def __init__(self, name="", weight=0.0,course_id=-1):
         self.name = name
         self.weight = weight
         self.course_id = course_id
