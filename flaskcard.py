@@ -118,9 +118,11 @@ def add_semester():
     # semester = SemesterForm(request.POST,None)
     if request.form:
         f = SemesterForm(request.form)
+        new_semester = Semester()
         if f.validate():
             if Semester.query.filter_by(season=f.data['season'].upper(),year=f.data['year']).first() is None:
-                db.session.add(Semester(season=f.data['season'].upper(),year=f.data['year'],user_id=f.data['user_id']))
+                f.populate_obj(new_semester)
+                db.session.add(new_semester)
                 db.session.commit()
             else:
                 flash('Semester already added')
@@ -152,15 +154,14 @@ def add_course():
         f = CourseForm(request.form)
         if f.validate():
             #TODO: validate Category weight summation
-            new_course = Course(
-                name = f.data['name'],
-                instructor = f.data['instructor'],
-                semester_id = f.data['semester_id'])
+            new_course = Course()
+            f.populate_obj(new_course)
             db.session.add(new_course)
             db.session.commit()
             category_names = map(lambda key: request.form[key], filter(lambda kv: kv.startswith('category'),request.form))
             category_weights = map(lambda key: request.form[key],filter(lambda kv: kv.startswith('weight'),request.form))
             for i in xrange(len(category_names)):
+                # TODO: category validation
                 new_category = Category(name=category_names[i],
                                         weight=category_weights[i],
                                         course_id=new_course.id)
@@ -206,11 +207,9 @@ def add_grade(course_id):
     # must ensure all elements in form are present!
     f = AssignmentForm(request.form)
     if f.validate():
-        assignment = Assignment(name=f.data['name'],
-                                earned_points=f.data['earned_points'],
-                                total_points=f.data['total_points'],
-                                category_id=f.data['category_id'])
-        db.session.add(assignment)
+        new_assignment = Assignment()
+        f.populate_obj(new_assignment)
+        db.session.add(new_assignment)
         db.session.commit()
     else:
         flash(f.errors)
