@@ -28,6 +28,7 @@
           {{ a.category }}
           <a href="{{ url_for('assignment', course_id=course.id, assignment_id=a.id) }}">edit</a>
           <a href="#">grade projection</a>
+          <a href="{{ url_for('delete_assignment', course_id=course.id, assignment_id=a.id)}}" data>remove</a>
         </div>
       {% endfor %}
     {% endfor %}

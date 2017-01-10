@@ -168,7 +168,7 @@ def add_course():
     season = request.form['season']
     return redirect(url_for('semester', season=season, year=year))
 
-@app.route('/course/<course_id>')
+@app.route('/course/<course_id>', methods=['GET'])
 @login_required
 def course(course_id):
     course = Course.query.filter_by(id=course_id).first()
@@ -200,7 +200,6 @@ def add_grade(course_id):
     course = Course.query.filter_by(id=course_id).first()
     semester = Semester.query.filter_by(id=course.semester_id).first()
     #TODO: validate course_id and category_id!!!!
-    print request.form
     # must ensure all elements in form are present!
     f = AssignmentForm(request.form)
     if f.validate():
@@ -250,6 +249,19 @@ def assignment(course_id,assignment_id):
         'course_id' : course_id
     }
     return render_template('assignment.html', **context)
+
+@app.route('/course/<course_id>/assignments/<assignment_id>/delete', methods=["GET"])
+def delete_assignment(course_id,assignment_id):
+    # TODO: use AJAX/javascript to handle DELETE requests (the method would just be "delete")
+    # TODO: create a get_or_not_exists function that generalizes across models
+    assignment = Assignment.query.filter_by(id=assignment_id).first()
+    if assignment is None:
+        flash('Assignment does not exist in our database!')
+    else:
+        flash('Successfully deleted assignment')
+        db.session.delete(assignment)
+        db.session.commit()
+    return redirect(url_for('course',course_id=course_id))
 
 @app.route('/course/<course_id>/assignments/<assignment_id>/update', methods=['POST'])
 @login_required
