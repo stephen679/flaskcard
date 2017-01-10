@@ -157,13 +157,27 @@ def semester():
                                             semester=semester,
                                             form=CourseForm())
 
-@app.route('/course/<course_id>', methods=['GET'])
+@app.route('/course/<course_id>', methods=['GET','POST'])
 @login_required
 def course(course_id):
     course = Course.query.filter_by(id=course_id).first()
     if course is None:
         return redirect(url_for('semesters'))
     semester = Semester.query.filter_by(id=course.semester_id).first()
+
+    if request.method == "POST":
+        #TODO: validate course_id and category_id!!!!
+        # must ensure all elements in form are present!
+        f = AssignmentForm(request.form)
+        if f.validate():
+            new_assignment = Assignment()
+            f.populate_obj(new_assignment)
+            db.session.add(new_assignment)
+            db.session.commit()
+        else:
+            flash(f.errors)
+        return redirect(url_for('course', course_id=course_id))
+
     try:
         course_avg = course_average(course)
     except:
@@ -171,34 +185,11 @@ def course(course_id):
     context = {
         'course' : course,
         'semester' : semester,
-        'categories' : [category for category in Category.query.filter_by(course_id=course.id)],
+        'categories' : Category.query.filter_by(course_id=course.id).all(),
         'course_avg' : course_avg,
         'form' : CourseForm(),
     }
     return render_template('course.html',**context)
-
-def course_average(course):
-    return reduce(lambda total_avg,c: c.compute_average()+total_avg if c.compute_raw_total() > 0.0 else total_avg,course.categories,0.0)
-
-def completed_categories_weight(course):
-    return reduce(lambda weight,c: c.weight+weight if c.compute_raw_total() > 0.0 else weight, course.categories,0.0)
-
-@app.route('/course/<course_id>/add_grade', methods=['POST'])
-@login_required
-def add_grade(course_id):
-    course = Course.query.filter_by(id=course_id).first()
-    semester = Semester.query.filter_by(id=course.semester_id).first()
-    #TODO: validate course_id and category_id!!!!
-    # must ensure all elements in form are present!
-    f = AssignmentForm(request.form)
-    if f.validate():
-        new_assignment = Assignment()
-        f.populate_obj(new_assignment)
-        db.session.add(new_assignment)
-        db.session.commit()
-    else:
-        flash(f.errors)
-    return redirect(url_for('course', course_id=course_id))
 
 @app.route('/category/<course_id>',methods=['GET'])
 @login_required
@@ -277,6 +268,15 @@ def compute(course_id):
     except:
         flash("No points earned so far, cannot compute grade")
     return redirect(url_for('course',course_id=course_id))
+
+####------- HELPER FUNCTIONS -------####
+def course_average(course):
+    return reduce(lambda total_avg,c: c.compute_average()+total_avg if c.compute_raw_total() > 0.0 else total_avg,course.categories,0.0)
+
+def completed_categories_weight(course):
+    return reduce(lambda weight,c: c.weight+weight if c.compute_raw_total() > 0.0 else weight, course.categories,0.0)
+
+####--------------------------------####
 
 if __name__ == "__main__":
     app.run()

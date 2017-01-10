@@ -34,7 +34,7 @@
     {% endfor %}
   </div>
   <hr>
-  <form action="{{ url_for('add_grade',course_id=course.id) }}" method=post class=add-assignment>
+  <form action="{{ url_for('course',course_id=course.id) }}" method=post class=add-assignment>
     <h3>New Assignment</h3>
     <dl>
       <dt>Title:
