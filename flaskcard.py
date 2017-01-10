@@ -82,8 +82,8 @@ def login():
             return redirect(url_for('login'))
         login_user(registered_user)
         flash('You\'re logged in')
-        # Go to the next page specified in HTML or default show_semesters
-        return redirect(request.args.get('next') or url_for('show_semesters'))
+        # Go to the next page specified in HTML or default semseters
+        return redirect(request.args.get('next') or url_for('semesters'))
     return render_template('login.html', error=err)
 
 @app.route('/logout')
@@ -96,27 +96,13 @@ def logout():
     flash('You logged out')
     return redirect(url_for('login'))
 
-@app.route('/')
-def show_semesters():
+@app.route('/',methods=["GET","POST"])
+@login_required
+def semesters():
     """
     Show semesters for the logged-in user
     """
-    # Current user is a global managed by LoginManager
-    user = User.query.filter_by(id=current_user.get_id()).first()
-    if user is None:
-        return redirect(url_for('login'))
-    semesters = [semester for semester in user.semesters]
-    return render_template('overview.html', semesters=semesters,user=user,form=SemesterForm())
-
-@app.route('/add_semester', methods=['POST'])
-@login_required
-def add_semester():
-    """
-    Add a new semseter in a user's history
-    """
-    # TODO: separate form validation and object creation
-    # semester = SemesterForm(request.POST,None)
-    if request.form:
+    if request.method == "POST":
         f = SemesterForm(request.form)
         new_semester = Semester()
         if f.validate():
@@ -128,7 +114,31 @@ def add_semester():
                 flash('Semester already added')
         else:
             flash(f.errors)
-    return redirect(url_for('show_semesters'))
+    return render_template('overview.html', semesters=current_user.semesters.all(),
+                                            user=current_user,
+                                            form=SemesterForm())
+
+# @app.route('/add_semester', methods=['POST'])
+# @login_required
+# def add_semester():
+#     """
+#     Add a new semseter in a user's history
+#     """
+#     # TODO: separate form validation and object creation
+#     # semester = SemesterForm(request.POST,None)
+#     if request.form:
+#         f = SemesterForm(request.form)
+#         new_semester = Semester()
+#         if f.validate():
+#             if Semester.query.filter_by(season=f.data['season'].upper(),year=f.data['year']).first() is None:
+#                 f.populate_obj(new_semester)
+#                 db.session.add(new_semester)
+#                 db.session.commit()
+#             else:
+#                 flash('Semester already added')
+#         else:
+#             flash(f.errors)
+#     return redirect(url_for('semesters'))
 
 @app.route('/semester')
 @login_required
@@ -138,12 +148,12 @@ def semester():
         year = request.args.get('year')
     except:
         flash('Semester does not exist in the database')
-        return redirect(url_for('show_semesters'))
+        return redirect(url_for('semesters'))
     # TODO: show courses that exist for that semester
     semester = Semester.query.filter_by(season=season,year=year,user_id=get_current_user().id).first()
     if semester is None:
         flash('%s year: %s for user: %s does not exist in the database' % (season,year,get_current_user().id))
-        return redirect(url_for('show_semesters'))
+        return redirect(url_for('semesters'))
     courses = [course for course in semester.courses]
     return render_template('semester.html', courses=courses,season=season,year=year,semester=semester,form=CourseForm())
 
@@ -177,7 +187,7 @@ def add_course():
 def course(course_id):
     course = Course.query.filter_by(id=course_id).first()
     if course is None:
-        return redirect(url_for('show_semesters'))
+        return redirect(url_for('semesters'))
     semester = Semester.query.filter_by(id=course.semester_id).first()
     try:
         course_avg = course_average(course)
@@ -221,7 +231,7 @@ def category(course_id):
     course = Course.query.filter_by(id=course_id).first()
     if course is None:
         flash('Course not found')
-        return redirect(url_for('show_semesters'))
+        return redirect(url_for('semesters'))
     assignments = course.assignments.all()
     categories = set([Category.query.filter_by(id=a.category_id).first() for a in assignments])
     return render_template('category.html',categories=categories)
@@ -237,7 +247,7 @@ def add_category():
         return redirect(url_for('add_category'))
     db.session.add(new_category)
     db.session.commit()
-    return redirect(url_for('show_semesters'))
+    return redirect(url_for('semesters'))
 
 @app.route('/course/<course_id>/assignments/<assignment_id>', methods=['GET','POST'])
 @login_required
