@@ -114,55 +114,17 @@ def semesters():
                 flash('Semester already added')
         else:
             flash(f.errors)
-    return render_template('overview.html', semesters=current_user.semesters.all(),
-                                            user=current_user,
+    return render_template('overview.html', user=current_user,
                                             form=SemesterForm())
 
-# @app.route('/add_semester', methods=['POST'])
-# @login_required
-# def add_semester():
-#     """
-#     Add a new semseter in a user's history
-#     """
-#     # TODO: separate form validation and object creation
-#     # semester = SemesterForm(request.POST,None)
-#     if request.form:
-#         f = SemesterForm(request.form)
-#         new_semester = Semester()
-#         if f.validate():
-#             if Semester.query.filter_by(season=f.data['season'].upper(),year=f.data['year']).first() is None:
-#                 f.populate_obj(new_semester)
-#                 db.session.add(new_semester)
-#                 db.session.commit()
-#             else:
-#                 flash('Semester already added')
-#         else:
-#             flash(f.errors)
-#     return redirect(url_for('semesters'))
-
-@app.route('/semester')
+@app.route('/semester', methods = ["GET","POST"])
 @login_required
 def semester():
-    try:
-        season = request.args.get('season')
-        year = request.args.get('year')
-    except:
-        flash('Semester does not exist in the database')
-        return redirect(url_for('semesters'))
-    # TODO: show courses that exist for that semester
-    semester = Semester.query.filter_by(season=season,year=year,user_id=get_current_user().id).first()
-    if semester is None:
-        flash('%s year: %s for user: %s does not exist in the database' % (season,year,get_current_user().id))
-        return redirect(url_for('semesters'))
-    courses = [course for course in semester.courses]
-    return render_template('semester.html', courses=courses,season=season,year=year,semester=semester,form=CourseForm())
-
-@app.route('/semester/add_course', methods=['POST'])
-@login_required
-def add_course():
-    if request.form:
+    if request.method == "POST":
         f = CourseForm(request.form)
-        if f.validate():
+        if not f.validate():
+            flash(f.errors)
+        else:
             #TODO: validate Category weight summation
             new_course = Course()
             f.populate_obj(new_course)
@@ -178,9 +140,22 @@ def add_course():
                 db.session.add(new_category)
             db.session.commit()
             flash('Course added!')
-        else:
-            flash(f.errors)
-    return redirect(url_for('semester', season=request.form['season'], year=request.form['year']))
+        season = request.form['season']
+        year = request.form['year']
+    else:
+        try:
+            season = request.args.get('season')
+            year = request.args.get('year')
+        except:
+            flash('Semester does not exist in the database')
+            return redirect(url_for('semesters'))
+    semester = Semester.query.filter_by(season=season,year=year,user_id=current_user.id).first()
+    if semester is None:
+        flash('The semester you tried accessing does not exist in the database')
+        return redirect(url_for('semesters'))
+    return render_template('semester.html', courses=semester.courses.all(),
+                                            semester=semester,
+                                            form=CourseForm())
 
 @app.route('/course/<course_id>', methods=['GET'])
 @login_required

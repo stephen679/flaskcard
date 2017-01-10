@@ -2,7 +2,7 @@
 {% block body %}
 	<h2>your semesters</h2>
 	<ul class=semesters>
-	{% for semester in semesters %}
+	{% for semester in user.semesters.all() %}
 		<li>
 			<a href="{{ url_for('semester',season=semester.season,year=semester.year) }}">
 				{{ semester.season }} {{ semester.year }}
