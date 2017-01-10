@@ -35,11 +35,10 @@ class SemesterForm(Form):
 
 class AssignmentForm(Form):
     name = StringField('name', [validators.Length(max=128),validators.DataRequired()])
-    earned_points = FloatField('earned_points', [validators.Length(max=4),validators.DataRequired()])
-    total_points = FloatField('total_points', [validators.Length(max=4),validators.DataRequired()])
-    description = StringField('description',[validators.Length(max=128)])
-    course_id = IntegerField('course_id', [validators.DataRequired(),IdValidate(Course)])
-    category_id = IntegerField('category_id', [validators.DataRequired(), IdValidate(Category)])
+    earned_points = FloatField('earned_points', [validators.DataRequired()])
+    total_points = FloatField('total_points', [validators.DataRequired()])
+    description = StringField('description',[validators.Length(max=128)],default="")
+    category_id = IntegerField('category_id', [validators.DataRequired()])
 
 class CourseForm(Form):
     name = StringField('name', [validators.Length(max=128),validators.DataRequired()])

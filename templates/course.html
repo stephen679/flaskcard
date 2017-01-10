@@ -10,6 +10,9 @@
       <h4>{{ category.name }} (weighted: {{ category.weight }})</h4>
       <li>Earned points: {{ category.compute_raw_earned() }}</li>
       <li>Total points so far: {{ category.compute_raw_total() }}</li>
+      {% if category.compute_raw_total() > 0.0 %}
+        <li>Avg. for this category: {{ (category.compute_raw_earned())/category.compute_raw_total() }}</li>
+      {% endif %}
     {% endfor %}
     </ul>
     </div>
@@ -34,9 +37,9 @@
     <h3>New Assignment</h3>
     <dl>
       <dt>Title:
-      <dd><input type=text size=30 name=title>
+      <dd><input type=text size=30 name=name>
       <dt>Points Earned:
-      <dd><input type=text size=30 name=points_earned>
+      <dd><input type=text size=30 name=earned_points>
       <dt>Total Points:
       <dd><input type=text size=30 name=total_points>
       <dd><input type=submit value="Add assignment">

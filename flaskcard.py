@@ -52,6 +52,10 @@ def initialize_database():
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+@app.errorhandler(404)
+def error_404_response(error):
+    return render_template('error.html')
+
 @app.route('/register',methods=['GET','POST'])
 def register():
     if request.method == 'GET':
@@ -196,12 +200,18 @@ def add_grade(course_id):
     course = Course.query.filter_by(id=course_id).first()
     semester = Semester.query.filter_by(id=course.semester_id).first()
     #TODO: validate course_id and category_id!!!!
-    assignment = Assignment(request.form['title'],
-                            request.form['points_earned'],
-                            request.form['total_points'],
-                            request.form['category_id'])
-    db.session.add(assignment)
-    db.session.commit()
+    print request.form
+    # must ensure all elements in form are present!
+    f = AssignmentForm(request.form)
+    if f.validate():
+        assignment = Assignment(f.data['name'],
+                                f.data['earned_points'],
+                                f.data['total_points'],
+                                f.data['category_id'])
+        db.session.add(assignment)
+        db.session.commit()
+    else:
+        flash(f.errors)
     return redirect(url_for('course', course_id=course_id))
 
 @app.route('/category/<course_id>',methods=['GET'])
