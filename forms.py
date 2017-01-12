@@ -61,7 +61,7 @@ class CategoryForm(Form):
             return False
 
         # TODO: weird hack, try not to do this
-        if float(self.data['weight'].data) > 1.0 or float(self.data['weight'].data) <= 0.0:
+        if float(self.data['weight']) > 1.0 or float(self.data['weight']) <= 0.0:
             self.weight.errors.append('Weight must be within 0.0 and 1.0')
             return False
         return True
@@ -82,5 +82,15 @@ class CourseForm(Form):
                             semester_id=self.data['semester_id']).first() is not None:
             self.semester_id.errors.append('This semester already has that course')
             return False
-        print len(self.categories)
+        
+        if len(self.categories) == 0:
+            self.categories.errors.append('Must have at least one category')
+            return False
+
+        # TODO: figure out if float() is required, or is there some way around that
+        # when getting your data
+        total_weight = reduce(lambda x,y: x + float(y.weight.data),self.categories,0.0)
+        if total_weight != 1.0:
+            self.categories.errors.append('Categories must sum to 1.0')
+            return False
         return True

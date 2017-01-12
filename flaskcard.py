@@ -121,7 +121,6 @@ def semester():
         # Partially initialize the course form, and then manually add
         # categories to it. Then we have all the information to validate a course
         # and its category weights.
-
         f = CourseForm(request.form)
         def extract(key_to_extract,form):
             arr = filter(lambda kv: kv.startswith(key_to_extract),form)
@@ -132,14 +131,15 @@ def semester():
         category_weights = extract('weight',request.form)
 
         for i in xrange(len(category_names)):
-            cf = CategoryForm(name=category_names[i],
-                              weight=category_weights[i])
-            f.categories.append_entry(cf)
+            # LEARNING EXPRERIENCE: when appending an entry, don't think of it
+            # as appending a FORM. think of it as appending the OBJECT that's related
+            # to the form. Hence, you only need a dict that corresponds with the model.
+            f.categories.append_entry({'name'   : category_names[i],
+                                       'weight' : category_weights[i]})
         if f.validate_on_submit():
             # TODO: create Course and Category objects at the same time?
             #       i.e, find a way to do f.populate_obj(Course), with course
             #       already having empty category objects in it
-
             new_course = Course(request.form)
             db.session.add(new_course)
             db.session.commit()
