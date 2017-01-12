@@ -105,13 +105,10 @@ def semesters():
     if request.method == "POST":
         f = SemesterForm(request.form)
         new_semester = Semester()
-        if f.validate():
-            if Semester.query.filter_by(season=f.data['season'].upper(),year=f.data['year']).first() is None:
-                f.populate_obj(new_semester)
-                db.session.add(new_semester)
-                db.session.commit()
-            else:
-                flash('Semester already added')
+        if f.validate_on_submit():
+            f.populate_obj(new_semester)
+            db.session.add(new_semester)
+            db.session.commit()
         else:
             flash(f.errors)
     return render_template('overview.html', user=current_user,
@@ -122,24 +119,27 @@ def semesters():
 def semester():
     if request.method == "POST":
         f = CourseForm(request.form)
-        if not f.validate():
-            flash(f.errors)
-        else:
-            #TODO: validate Category weight summation
-            new_course = Course()
-            f.populate_obj(new_course)
+        category_names = map(lambda key: request.form[key], filter(lambda kv: kv.startswith('category'),request.form))
+        category_weights = map(lambda key: request.form[key],filter(lambda kv: kv.startswith('weight'),request.form))
+        for i in xrange(len(category_names)):
+            cf = CategoryForm(name=category_names[i],
+                              weight=category_weights[i])
+            f.categories.append_entry(cf)
+        if f.validate_on_submit():
+            new_course = Course(name=f.data['name'],
+                                instructor=f.data['instructor'],
+                                semester_id=f.data['semester_id'])
             db.session.add(new_course)
             db.session.commit()
-            category_names = map(lambda key: request.form[key], filter(lambda kv: kv.startswith('category'),request.form))
-            category_weights = map(lambda key: request.form[key],filter(lambda kv: kv.startswith('weight'),request.form))
             for i in xrange(len(category_names)):
-                # TODO: category validation
-                new_category = Category(name=category_names[i],
-                                        weight=category_weights[i],
-                                        course_id=new_course.id)
-                db.session.add(new_category)
+                c = Category(name=category_names[i],
+                             weight=category_weights[i],
+                             course_id=new_course.id)
+                db.session.add(c)
             db.session.commit()
             flash('Course added!')
+        else:
+            flash(f.errors)
         season = request.form['season']
         year = request.form['year']
     else:
