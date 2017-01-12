@@ -118,24 +118,37 @@ def semesters():
 @login_required
 def semester():
     if request.method == "POST":
+        # Partially initialize the course form, and then manually add
+        # categories to it. Then we have all the information to validate a course
+        # and its category weights.
+
         f = CourseForm(request.form)
-        category_names = map(lambda key: request.form[key], filter(lambda kv: kv.startswith('category'),request.form))
-        category_weights = map(lambda key: request.form[key],filter(lambda kv: kv.startswith('weight'),request.form))
+        def extract(key_to_extract,form):
+            arr = filter(lambda kv: kv.startswith(key_to_extract),form)
+            arr.sort()
+            return map(lambda key: form[key], arr)
+
+        category_names = extract('category',request.form)
+        category_weights = extract('weight',request.form)
+
         for i in xrange(len(category_names)):
             cf = CategoryForm(name=category_names[i],
                               weight=category_weights[i])
             f.categories.append_entry(cf)
         if f.validate_on_submit():
+            # TODO: create Course and Category objects at the same time?
+            #       i.e, find a way to do f.populate_obj(Course), with course
+            #       already having empty category objects in it
+            
             new_course = Course(name=f.data['name'],
                                 instructor=f.data['instructor'],
                                 semester_id=f.data['semester_id'])
             db.session.add(new_course)
             db.session.commit()
             for i in xrange(len(category_names)):
-                c = Category(name=category_names[i],
-                             weight=category_weights[i],
-                             course_id=new_course.id)
-                db.session.add(c)
+                db.session.add(Category(name=category_names[i],
+                                        weight=category_weights[i],
+                                        course_id=new_course.id))
             db.session.commit()
             flash('Course added!')
         else:
@@ -153,9 +166,7 @@ def semester():
     if semester is None:
         flash('The semester you tried accessing does not exist in the database')
         return redirect(url_for('semesters'))
-    return render_template('semester.html', courses=semester.courses.all(),
-                                            semester=semester,
-                                            form=CourseForm())
+    return render_template('semester.html', semester=semester,form=CourseForm())
 
 @app.route('/course/<course_id>', methods=['GET','POST'])
 @login_required
