@@ -82,4 +82,5 @@ class CourseForm(Form):
                             semester_id=self.data['semester_id']).first() is not None:
             self.semester_id.errors.append('This semester already has that course')
             return False
+        print len(self.categories)
         return True

@@ -4,7 +4,8 @@
   <div class=courses>
     <h3>Current courses created:</h3>
     <ul>
-      {% for course in courses %}
+      {% for course in semester.courses %}
+      <!-- Why can we just call the field semester.courses in Jinja, but in the controller we have to do semester.courses.all? -->
         <li><h2>{{ course.name }}<br></li></h2>
         <ol>Instructor: {{ course.instructor }}</ol>
         <ol><a href="{{ url_for('course', course_id=course.id) }}">see course grades</a></ol>

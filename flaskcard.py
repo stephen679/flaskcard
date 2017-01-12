@@ -139,7 +139,7 @@ def semester():
             # TODO: create Course and Category objects at the same time?
             #       i.e, find a way to do f.populate_obj(Course), with course
             #       already having empty category objects in it
-            
+
             new_course = Course(name=f.data['name'],
                                 instructor=f.data['instructor'],
                                 semester_id=f.data['semester_id'])
