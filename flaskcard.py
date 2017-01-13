@@ -140,7 +140,9 @@ def semester():
             # TODO: create Course and Category objects at the same time?
             #       i.e, find a way to do f.populate_obj(Course), with course
             #       already having empty category objects in it
-            new_course = Course(request.form)
+            new_course = Course(semester_id=request.form['semester_id'],
+                                name=request.form['name'],
+                                instructor=request.form['instructor'])
             db.session.add(new_course)
             db.session.commit()
             for i in xrange(len(category_names)):
