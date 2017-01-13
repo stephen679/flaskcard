@@ -97,7 +97,6 @@ def logout():
     return redirect(url_for('login'))
 
 @app.route('/',methods=["GET","POST"])
-@login_required
 def semesters():
     """
     Show semesters for the logged-in user
@@ -111,6 +110,8 @@ def semesters():
             db.session.commit()
         else:
             flash(f.errors)
+    if get_current_user() is None:
+        return redirect(url_for('login'))
     return render_template('overview.html', user=current_user,
                                             form=SemesterForm())
 
