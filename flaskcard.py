@@ -52,6 +52,11 @@ def initialize_database():
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+@lm.unauthorized_handler
+def unauthorized():
+    flash('You need to be logged in to access that page')
+    return redirect(url_for('login'))
+
 @app.errorhandler(404)
 def error_404_response(error):
     return render_template('error.html')
