@@ -70,7 +70,7 @@ class Course(db.Model):
 
 class Assignment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(128))
+    name = db.Column(db.String(128),primary_key=False)
     earned_points = db.Column(db.Integer)
     total_points = db.Column(db.Integer)
     description = (db.Column(db.String(128)))

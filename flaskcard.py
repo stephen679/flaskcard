@@ -97,6 +97,7 @@ def logout():
     return redirect(url_for('login'))
 
 @app.route('/',methods=["GET","POST"])
+@login_required
 def semesters():
     """
     Show semesters for the logged-in user
@@ -181,7 +182,7 @@ def course(course_id):
         #TODO: validate course_id and category_id!!!!
         # must ensure all elements in form are present!
         f = AssignmentForm(request.form)
-        if f.validate():
+        if f.validate_on_submit():
             new_assignment = Assignment()
             f.populate_obj(new_assignment)
             db.session.add(new_assignment)
@@ -236,7 +237,7 @@ def assignment(course_id,assignment_id):
         return redirect(url_for('course',course_id=course_id))
     context = {
         'assignment' : assignment,
-        'course_id' : course_id
+        'course_id' : course_id,
     }
     return render_template('assignment.html', **context)
 

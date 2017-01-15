@@ -49,6 +49,14 @@ class AssignmentForm(Form):
     description = StringField('description',[validators.Length(max=128)],default="")
     category_id = IntegerField('category_id', [validators.DataRequired()])
 
+    def validate(self):
+        if not Form.validate(self):
+            return False
+        if Assignment.query.filter_by(name=self.name.data.lower()) is not None:
+            self.name.errors.append('Assignment with that name already exists for this course')
+            return False
+        return True
+
 class CategoryForm(Form):
     name = StringField('name', [validators.DataRequired()])
     weight = FloatField('weight', [validators.DataRequired()])
@@ -82,7 +90,7 @@ class CourseForm(Form):
                             semester_id=self.data['semester_id']).first() is not None:
             self.semester_id.errors.append('This semester already has that course')
             return False
-        
+
         if len(self.categories) == 0:
             self.categories.errors.append('Must have at least one category')
             return False
