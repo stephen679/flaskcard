@@ -40,6 +40,9 @@ class SemesterForm(Form):
             self.season.errors.append(same)
             self.year.errors.append(same)
             return False
+        if self.season.data.lower() not in ['winter','spring','summer','fall']:
+            self.season.errors.append('Must enter a valid season (i.e, fall,winter,summer,spring)')
+            return False
         return True
 
 class AssignmentForm(Form):
@@ -58,6 +61,10 @@ class AssignmentForm(Form):
         return True
 
 class CategoryForm(Form):
+    # TODO: don't create new categories with same names and same weights? Possibly
+    #       do something that comes up with suggestions for similarly named categories
+    #       that query by weight
+
     name = StringField('name', [validators.DataRequired()])
     weight = FloatField('weight', [validators.DataRequired()])
 
@@ -85,8 +92,8 @@ class CourseForm(Form):
     def validate(self):
         if not Form.validate(self):
             return False
-        if Course.query.filter_by(name=self.data['name'],
-                            instructor=self.data['instructor'],
+        if Course.query.filter_by(name=self.data['name'].lower(),
+                            instructor=self.data['instructor'].lower(),
                             semester_id=self.data['semester_id']).first() is not None:
             self.semester_id.errors.append('This semester already has that course')
             return False
@@ -94,6 +101,15 @@ class CourseForm(Form):
         if len(self.categories) == 0:
             self.categories.errors.append('Must have at least one category')
             return False
+
+        seen = dict()
+        for category in self.categories.data:
+            category_name = category['name'].lower()
+            if category_name not in seen:
+                seen[category_name] = True
+            else:
+                self.categories.errors.append('Please use unique category names only' % category_name)
+                return False
 
         # TODO: figure out if float() is required, or is there some way around that
         # when getting your data

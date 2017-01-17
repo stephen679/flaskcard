@@ -136,7 +136,8 @@ def semester():
 
         category_names = extract('category',request.form)
         category_weights = extract('weight',request.form)
-
+        print category_names
+        print category_weights
         for i in xrange(len(category_names)):
             # LEARNING EXPRERIENCE: when appending an entry, don't think of it
             # as appending a FORM. think of it as appending the OBJECT that's related
