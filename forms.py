@@ -55,8 +55,8 @@ class AssignmentForm(Form):
     def validate(self):
         if not Form.validate(self):
             return False
-        if Assignment.query.filter_by(name=self.name.data.lower()) is not None:
-            self.name.errors.append('Assignment with that name already exists for this course')
+        if self.total_points.data <= 0.0:
+            self.total_points.errors.append('assignment must have non-negative total points')
             return False
         return True
 

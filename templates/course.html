@@ -3,7 +3,8 @@
 <div class=courses>
   <h2> your grades for {{ course.name }}, taught by {{ course.instructor }}</h2>
   <br>
-  <div class=course-report>
+  {{ course_table }}
+  <!-- <div class=course-report>
     <span>Course summary for categories:</span>
     <ul>
     {% for category in categories %}
@@ -15,7 +16,8 @@
       {% endif %}
     {% endfor %}
     </ul>
-    </div>
+  </div> -->
+  <div>
     <a href="{{ url_for('compute',course_id=course.id) }}">Compute grade</a><br>
     <a href="#">Edit categories</a>
     <h4>Completed assignments:</h4>
@@ -53,4 +55,5 @@
     </dl>
     {{ form.csrf_token }}
   </form>
+</div>
 {% endblock %}

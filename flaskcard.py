@@ -6,6 +6,7 @@ from flask_login import LoginManager, login_user , logout_user , current_user , 
 from contextlib import closing # helps initialize a database so we don't have to hardcode
 from models import *
 from forms import *
+from tables import *
 
 app = Flask(__name__)
 
@@ -203,6 +204,7 @@ def course(course_id):
         course_avg = "No points earned so far"
     context = {
         'course' : course,
+        'course_table' : CourseTable([course]),
         'semester' : semester,
         'categories' : Category.query.filter_by(course_id=course.id).all(),
         'course_avg' : course_avg,
